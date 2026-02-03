@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+    <template id="pos_payment_in_multi_currency.pos_session_sales_details" inherit_id="point_of_sale.pos_session_sales_details">
+        <xpath expr="//div[@id='payments']" position="after">
+            <h3>Other Currency Payment</h3>
+            <table class="table table-sm">
+                <thead>
+                    <t t-if="currency_amount">
+                        <tr>
+                            <th>Currency</th>
+                            <th>Total</th>
+                        </tr>
+                    </t>
+                </thead>
+                <tbody>
+                    <t t-if="currency_amount">
+                        <tr>
+                            <td>
+                                <span t-out='symbol'/>
+                            </td>
+                            <td>
+                                <span t-out="amount"/>
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </xpath>
+    </template>
+</odoo>
