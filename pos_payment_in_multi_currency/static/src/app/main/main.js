@@ -8,7 +8,7 @@ import { patch } from "@web/core/utils/patch";
 import { PosPayment } from "@point_of_sale/app/models/pos_payment";
 import { formatFloat, roundDecimals as round_di } from "@web/core/utils/numbers";
 import { ClosePosPopup } from "@point_of_sale/app/components/popups/closing_popup/closing_popup";
-ClosePosPopup.props.push("currency_amount")
+ClosePosPopup.props.push("currency_amount?")
 
 patch(PosStore.prototype, {
     async processServerData() {
