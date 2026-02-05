@@ -88,6 +88,21 @@ patch(PosStore.prototype, {
             return Math.max(0, change);
         }
     },
+
+    changeTextmc() {
+        let order = this.getOrder();
+        let payment_ids = order.payment_ids.filter((p) => !p.is_change);
+        if (this.config.enable_multi_currency && payment_ids.length == 1 && payment_ids[0].other_currency_id) {
+            var amt = (payment_ids[0].other_currency_id.rate * order.change) / this.currency.rate
+            amt = parseFloat(round_di(amt, 4));
+            amt = this.format_currency_n_symbol(amt, 0.0001);
+            var currency_id = payment_ids[0].other_currency_id;
+            return this.formating(amt, currency_id)
+        }
+        else {
+            return this.env.utils.formatCurrency(order.change);
+        }
+    },
 });
 
 patch(PosOrder, {

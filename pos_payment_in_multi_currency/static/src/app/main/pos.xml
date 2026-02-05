@@ -18,7 +18,7 @@
         </xpath>
     </t>
     <t t-name="ClosePosPopup" t-inherit="point_of_sale.ClosePosPopup" t-inherit-mode="extension" >
-<!-- **************************************CUSTOMIZE STARTS HERE****************************************** -->
+        <!-- **************************************CUSTOMIZE STARTS HERE****************************************** -->
         <xpath expr="//div[hasclass('total-orders')]" position="replace">
             <t t-if="pos.getCashier() and pos.getCashier()._role == 'manager'">
                 <div class="total-orders fw-bolder align-middle my-1">
@@ -107,7 +107,7 @@
                 </tbody>
             </t>
         </xpath>
-<!-- ****************************************ENDS HERE**************************************************** -->
+        <!-- ****************************************ENDS HERE**************************************************** -->
     </t>
     <t t-name="PaymentScreenPaymentLines" t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension" >
         <xpath expr="//span[hasclass('payment-name')]" position="replace">
@@ -172,7 +172,6 @@
     </t>
     <t t-name="PaymentScreenStatus" t-inherit="point_of_sale.PaymentScreenStatus" t-inherit-mode="extension" >
         <xpath expr="//div[hasclass('payment-status-container')]" position="after">
-            <t t-log="props.order.getSelectedPaymentline()"/>
             <t t-if="props.order.getSelectedPaymentline() and props.order.getSelectedPaymentline().is_multi_currency_payment">
                 <div class="payment-status-container">
                     <div>
@@ -292,8 +291,7 @@
                     <span  class="pos-receipt-right-align">
                         <t t-if="line.other_currency_amount">
                             <t t-esc="this.env.services.pos.formating(line.other_currency_amount,line.other_currency_id)"/>
-                            </t>
-                        
+                        </t>
                         <t t-else="" t-esc="this.env.utils.formatCurrency(line.amount)" />
                     </span>
                 </div>
@@ -304,6 +302,12 @@
                     <span t-out="formatCurrency(line.getAmount())" class="pos-receipt-right-align font-monospace"/>
                 </div>
             </t>
+        </xpath>
+        <xpath expr="//div[hasclass('receipt-change')]" position="replace">
+            <div t-if="order.showChange" class="pos-receipt-amount receipt-change">
+                <span class="label-change">Change</span>
+                <span t-out="this.env.services.pos.changeTextmc()" class="pos-receipt-right-align font-monospace"/>
+            </div>
         </xpath>
     </t>
 </templates>
