@@ -14,14 +14,21 @@ patch(PaymentScreenStatus.prototype, {
 
     get changeTextmc() {
         if (this.pos.config.enable_multi_currency && this.props.order.use_multi_currency) {
-            var amt = this.pos.format_currency_n_symbol(this.pos.get_change_mc(this.props.order.change, this.props.order.getSelectedPaymentline()), 0.0001);
-            var currency_id = this.props.order.getSelectedPaymentline().other_currency_id;
-            return this.pos.formating(amt, currency_id)
-        }
-        else {
+            const paymentline = this.props.order.getSelectedPaymentline();
+            const currency_id = paymentline.other_currency_id;
+            const change_mc = this.pos.get_change_mc(this.props.order.change, paymentline);
+
+            if (currency_id.name === 'USD' && Math.abs(change_mc) < 1) {
+                return this.env.utils.formatCurrency(this.props.order.change);
+            } else {
+                const amt = this.pos.format_currency_n_symbol(change_mc, 0.0001);
+                return this.pos.formating(amt, currency_id);
+            }
+        } else {
             return this.env.utils.formatCurrency(this.props.order.change);
         }
     },
+
     get totalDueTextmc() {
         if (this.pos.config.enable_multi_currency && this.props.order.use_multi_currency) {
             var currency_id = this.props.order.getSelectedPaymentline().other_currency_id;
