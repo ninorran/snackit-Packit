@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+    <template id="pos_payment_in_multi_currency.report_invoice_document" inherit_id="account.report_invoice_document">
+        <xpath expr="//t[@t-foreach='payments_vals']" position="replace">
+            <t t-foreach="payments_vals" t-as="payment_vals">
+                <t t-if="payment_vals['is_multi_currency']">
+                    <tr t-if="payment_vals['is_exchange'] == 0">
+                        <td>
+                            <i class="oe_form_field text-end oe_payment_label">Paid on <t t-out="payment_vals['date']" t-options='{"widget": "date"}'>2021-09-19</t>
+                            </i>
+                        </td>
+                        <td class="text-end">
+                            <span t-out="payment_vals['other_currency_amount']" t-options='{"widget": "monetary", "display_currency": payment_vals["other_currency_id"]}'>20.00</span>
+                        </td>
+                    </tr>
+                </t>
+                <t t-else="">
+                    <tr t-if="payment_vals['is_exchange'] == 0">
+                        <td>
+                            <i class="oe_form_field text-end oe_payment_label">Paid on <t t-out="payment_vals['date']" t-options='{"widget": "date"}'>2021-09-19</t>
+                            </i>
+                        </td>
+                        <td class="text-end">
+                            <span t-out="payment_vals['amount']" t-options='{"widget": "monetary", "display_currency": o.currency_id}'>20.00</span>
+                        </td>
+                    </tr>
+                </t>
+            </t>
+        </xpath>
+    </template>
+</odoo>

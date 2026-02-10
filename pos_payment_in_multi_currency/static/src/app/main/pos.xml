@@ -1,0 +1,313 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<templates id="template" xml:space="preserve">
+    <t t-name="PaymentScreenButtons" t-inherit="point_of_sale.PaymentScreenButtons" t-inherit-mode="extension" >
+        <xpath expr="//div[hasclass('payment-buttons')]" position="after">
+            <t t-if="pos.config.enable_multi_currency">
+                <button class=" wk-multi-currency btn btn-secondary btn-lg d-flex justify-content-between align-items-baseline w-100  lh-lg" t-on-click="clickmulticurrency" 
+                t-att-class="{ 'highlight active': currentOrder.use_multi_currency }">
+                    <span>
+                        <i class="fa fa-money me-1" aria-hidden="true"></i>
+                    Multi-Currency
+                    </span>
+                    <i class="fa me-2" t-attf-class="{{ currentOrder.use_multi_currency  ? 'fa-check-square text-action' : 'fa-square-o' }}" />
+                </button>
+            </t>
+        </xpath>
+    </t>
+    <t t-name="ClosePosPopup" t-inherit="point_of_sale.ClosePosPopup" t-inherit-mode="extension" >
+        <!-- **************************************CUSTOMIZE STARTS HERE****************************************** -->
+        <xpath expr="//div[hasclass('total-orders')]" position="replace">
+            <t t-if="pos.getCashier() and pos.getCashier()._role == 'manager'">
+                <div class="total-orders fw-bolder align-middle my-1">
+                    <t t-esc="props.orders_details.quantity"/> orders:
+                    <span class="amount" t-esc="env.utils.formatCurrency(props.orders_details.amount)"/>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="total-orders fw-bolder align-middle my-1">
+                    <t t-esc="props.orders_details.quantity"/> orders
+                </div>
+            </t>
+        </xpath>
+
+        <xpath expr="//div[hasclass('payment-methods-overview')]/div" position="replace">
+            <t t-if="pos.getCashier() and pos.getCashier()._role == 'manager'">
+                <div t-if="pos.config.cash_control" class="w-100 mb-3">
+                    <t t-set="diff" t-value="getDifference(props.default_cash_details.id)" />
+                    <t t-set="counted" t-value="state.payments[props.default_cash_details.id]?.counted || '0'" />
+                    <div class="d-flex align-items-center justify-content-between fs-3">
+                        <span t-esc="props.default_cash_details.name" />
+                        <span t-esc="env.utils.formatCurrency(props.default_cash_details.amount)" />
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between text-muted border-start ps-2">
+                        <span>Opening</span>
+                        <span t-esc="env.utils.formatCurrency(props.default_cash_details.opening)" />
+                    </div>
+                    <div t-if="props.default_cash_details.payment_amount" class="d-flex align-items-center justify-content-between text-muted border-start ps-2">
+                        <span>Payments in <t t-esc="props.default_cash_details.name"/></span>
+                        <span class="align-top" t-esc="env.utils.formatCurrency(Math.abs(props.default_cash_details.payment_amount))"/>
+                    </div>
+                    <t t-set="moveData" t-value="cashMoveData"/>
+                    <PaymentMethodBreakdown title.translate="Cash In / Out" total_amount="cashMoveData.total" transactions="cashMoveData.moves"/>
+                    <div class="d-flex align-items-center justify-content-between text-muted border-start ps-2">
+                        <span>Counted</span>
+                        <span t-esc="env.utils.formatCurrency(env.utils.parseValidFloat(counted))" />
+                    </div>
+                    <div class="d-flex align-items-center justify-content-between text-muted border-start ps-2" t-att-class="{'text-danger fw-bold': diff}">
+                        <span>Difference</span>
+                        <span class="cash-difference" t-esc="env.utils.formatCurrency(diff)" />
+                    </div>
+                </div>
+            </t>
+        </xpath>
+
+        <xpath expr="//button[@t-on-click='autoFillCashCount']" position="replace">
+            <t t-if="pos.getCashier() and pos.getCashier()._role == 'manager'">
+                <button class="icon fa fa-clone btn btn-secondary" t-on-click="autoFillCashCount" />
+            </t>
+        </xpath>
+
+        <xpath expr="//div[hasclass('payment-methods-overview')]" position="after">
+            <h3/>
+            <t t-if="pos.getCashier() and pos.getCashier()._role == 'manager' and pos.config.enable_multi_currency">
+                <div class="payment-methods-overview">
+                    <table>
+                        <thead>
+                            <t t-if="props.currency_amount">
+                                <tr>
+                                    <div style="display: flex;">
+                                        <div>
+                                            <th>Currency</th>
+                                        </div>
+                                        <div style="margin-left: 291%;">
+                                            <th>Total</th>
+                                        </div>
+                                    </div>
+                                </tr>
+                            </t>
+                        </thead>
+                    </table>
+                </div>
+                <tbody>
+                    <div>
+                        <t t-if="props.currency_amount">
+                            <tr t-foreach="props.currency_amount" t-as='currency' t-key="currency">
+                                <td>
+                                    <t t-esc="currency"/>
+                                </td>
+                                <td style="position: absolute;left: 41%;">
+                                    <t t-esc="props.currency_amount[currency]"/>
+                                </td>
+                            </tr>
+                        </t>
+                    </div>
+                </tbody>
+            </t>
+        </xpath>
+        <!-- ****************************************ENDS HERE**************************************************** -->
+    </t>
+    <t t-name="PaymentScreenPaymentLines" t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension" >
+        <xpath expr="//span[hasclass('payment-name')]" position="replace">
+            <span class="payment-name">
+                <t t-esc="line.payment_method_id.name" />
+                <t t-if="pos.config.enable_multi_currency and pos.getOrder() and pos.getOrder().use_multi_currency and line.is_multi_currency_payment and line.other_currency_id">
+                    <span>
+                        (
+                        <t t-esc="line.other_currency_id.name" /> (
+                        <t t-esc="line.other_currency_id.symbol" />))
+                    </span>
+                </t>
+            </span>
+        </xpath>
+        <xpath expr="//div[hasclass('payment-amount')][1]" position="replace">
+            <div class="payment-amount px-3">
+                <t t-if="pos.config.enable_multi_currency and pos.getOrder() and pos.getOrder().use_multi_currency and line.is_multi_currency_payment and line.other_currency_id">
+                    <t t-esc="pos.formating(line.other_currency_amount, line.other_currency_id)" />
+                </t>
+                <t t-else="">
+                    <t t-esc="env.utils.formatCurrency(line.getAmount())" />
+                </t>
+            </div>
+        </xpath>
+        <xpath expr="//t[@t-else='']" position="replace">
+            <t t-else="">
+                <div class="payment-amount px-3">
+                    <t t-if="pos.config.enable_multi_currency and pos.getOrder() and pos.getOrder().use_multi_currency and line.is_multi_currency_payment and line.other_currency_id">
+                        <t t-esc="pos.formating(line.other_currency_amount, line.other_currency_id)" />
+                    </t>
+                    <t t-else="">
+                        <t t-esc="env.utils.formatCurrency(line.getAmount())" />
+                    </t>
+                </div>
+            </t>
+        </xpath>
+    </t>
+    <t t-name="PaymentScreenPaymentLine" t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension" >
+        <xpath expr="//div[hasclass('paymentlines')]/t/t[2]//div[hasclass('payment-amount')]" position="before">
+            <t t-if="pos.getOrder() and pos.getOrder().use_multi_currency and line.is_multi_currency_payment">
+                <span>
+                    (
+                    <t t-esc="line.other_currency_id.name" />
+                        (
+                    <t t-esc="line.other_currency_id.symbol" />)
+                    )
+                </span>
+            </t>
+        </xpath>
+        <xpath expr="//div[hasclass('paymentlines')]/t/t[2]//div[hasclass('payment-amount')]" position="replace">
+            <t t-if="pos.getOrder() and pos.getOrder().use_multi_currency and line.is_multi_currency_payment">
+                <div class="payment-amount px-3">
+                    <t t-esc="pos.formating(line.other_currency_amount ,line.other_currency_id)" />
+                </div>
+            </t>
+            <t t-else="">
+                <div class="payment-amount px-3">
+                    <t t-esc="env.utils.formatCurrency(line.getAmount())" />
+                </div>
+            </t>
+        </xpath>
+    </t>
+    <t t-name="PaymentScreenStatus" t-inherit="point_of_sale.PaymentScreenStatus" t-inherit-mode="extension" >
+        <xpath expr="//div[hasclass('payment-status-container')]" position="after">
+            <t t-if="props.order.getSelectedPaymentline() and props.order.getSelectedPaymentline().is_multi_currency_payment">
+                <div class="payment-status-container">
+                    <div>
+                        <div class="payment-status-remaining" style="font-size: 25px;">
+                            <span class="label">Currency conversion</span>
+                        </div>
+                        <div>
+                            <div class="payment-status-total-due" style="display: flex;float: inline-end;">
+                                <span class="label">
+                                Amount (
+                                    <t t-esc="pos.currency.symbol" />
+                                )
+                                </span>
+                                <span class="amount">
+                                    <t t-esc="convamount" />
+                                </span>
+                            </div>
+                        </div>
+                        <div class="payment-status-total-due">
+                            <span class="label">Total Due</span>
+                            <span style="padding-left: 12px;">
+                                <t t-esc="totalDueTextmc" />
+                            </span>
+                        </div>
+                        <div class="payment-status-total-due">
+                            <span class="label">Remaining</span>
+                            <span style="padding-left: 12px;">
+                                <t t-esc="remainingTextmc" />
+                            </span>
+                        </div>
+                        <div class="payment-status-total-due">
+                            <span class="label">Change</span>
+                            <span style="padding-left: 12px;">
+                                <t t-esc="changeTextmc" />
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </t>
+    <t t-name="pos_payment_in_multi_currency.MultiCurrencyPopup" >
+        <Dialog size="'md'" title="'Confirm ??'">
+            <t t-set-slot="header">
+                <div class="title multi-currency-title" style="background: #3e67c1;color: white;padding: 13px 20px;width: 100%;text-align: center;font-size: 20px;">
+                    <p style="margin: 0px;">Multi Currency</p>
+                </div>
+            </t>
+            <div class="form-floating" style="width: fit-content;position: relative;left: 129px;">
+                <div style="display: flex;padding: 15px 45px;text-align: center;align-items: center;gap: 7px;">
+                    <div style="float: left; font-weight: 600;">
+                        <span>Select Currency : </span>
+                    </div>
+                    <div style="float: right;">
+                        <div class="custom-select" style="width:170px;">
+                            <select class="wk-selected-currency" style="width: 150px;height: 30px;font-size: 15px;font-family: sans-serif;border-radius: 5px;
+                                                background: white;color: #424242;" t-on-change="selected_currency">
+                                <t t-foreach="this.env.services.pos.currencies" t-as="currency" t-key="currency.id">
+                                    <t t-if="this.env.services.pos.getOrder() and this.env.services.pos.getOrder().use_multi_currency">
+                                        <option t-att-value="currency.id">
+                                            <t t-esc="currency.name" />
+                                                    (
+                                            <t t-esc="currency.symbol" />
+                                                    )
+                                        </option>
+                                    </t>
+                                    <t t-else="">
+                                        <option t-att-value="currency.id">
+                                            <t t-esc="currency.name" />
+                                        </option>
+                                    </t>
+                                </t>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div style="display: flex; padding: 15px 45px; text-align: center;">
+                    <div style="float: left; font-weight: 600;">
+                        <span>Current Rate : </span>
+                    </div>
+                    <div style="float: right; margin-left: 15px;">
+                        <span class="wk-exchange-rate"> 00.0</span>
+                    </div>
+                </div>
+                <div style="display: flex; padding: 15px 45px; text-align: center;">
+                    <div style="float: left; font-weight: 600;">
+                        <span>
+                                    1
+                            <t t-esc="this.env.services.pos.config.currency_id[1]" />
+                                    =
+                        </span>
+                    </div>
+                    <div style="float: right; margin-left: 15px;">
+                        <span class="wk-currency-amount"> 1 </span>
+                                &#032;
+                        <span class="wk-currency-name"> USD</span>
+                    </div>
+                </div>
+            </div>
+            <t t-set-slot="footer">
+                <div class="d-flex w-100 justify-content-start gap-2">
+                    <button class="button confirm btn btn-lg btn-primary" t-on-click="confirm">
+                             Add
+                </button>
+                    <button class="button cancel btn btn-lg btn-secondary" t-on-click="props.close">
+                             Cancel
+                </button>
+                </div>
+            </t>
+        </Dialog>
+    </t>
+    <t t-name="OrderReceipt" t-inherit="point_of_sale.OrderReceipt" t-inherit-mode="extension" >
+        <xpath expr="//div[@t-foreach='paymentLines']" position="replace">
+            <t t-if="this.env.services.pos.getOrder().payment_ids.length > 0">
+                <div class="paymentlines text-start pt-1" t-foreach="paymentLines" t-as="line" t-key="line_index">
+                    <t t-esc="line.payment_method_id.name" />
+                    <span  class="pos-receipt-right-align">
+                        <t t-if="line.other_currency_amount">
+                            <t t-esc="this.env.services.pos.formating(line.other_currency_amount,line.other_currency_id)"/>
+                        </t>
+                        <t t-else="" t-esc="this.env.utils.formatCurrency(line.amount)" />
+                    </span>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="paymentlines text-start pt-1" t-foreach="paymentLines" t-as="line" t-key="line_index">
+                    <t t-esc="line.payment_method_id.name" />
+                    <span t-out="formatCurrency(line.getAmount())" class="pos-receipt-right-align font-monospace"/>
+                </div>
+            </t>
+        </xpath>
+        <xpath expr="//div[hasclass('receipt-change')]" position="replace">
+            <div t-if="order.showChange" class="pos-receipt-amount receipt-change">
+                <span class="label-change">Change</span>
+                <span t-out="this.env.services.pos.changeTextmc()" class="pos-receipt-right-align font-monospace"/>
+            </div>
+        </xpath>
+    </t>
+</templates>
