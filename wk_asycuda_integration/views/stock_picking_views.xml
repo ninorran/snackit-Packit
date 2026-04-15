@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+    <record id="view_picking_form_asycuda_manifest" model="ir.ui.view">
+        <field name="name">stock.picking.form.asycuda.manifest</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button
+                    name="action_generate_manifest_xml"
+                    type="object"
+                    string="Generate Manifest XML"
+                    class="btn-primary"
+                />
+                <button
+                    name="action_open_manifest_import_wizard"
+                    type="object"
+                    string="Import Manifest XML"
+                    class="btn-secondary"
+                />
+            </xpath>
+            <xpath expr="//sheet/notebook" position="before">
+                <group col="4">
+                    <separator string="Asycuda Manifest Data" colspan="4"/>
+                    <group colspan="2">
+                        <field name="customs_office_code" placeholder="e.g. SKBRP (5 chars)"/>
+                        <field name="place_of_departure_code" placeholder="e.g. JMKIN (5 chars)"/>
+                        <field name="place_of_destination_code" placeholder="e.g. KNBAS (5 chars)"/>
+                        <field name="shipping_agent_code" placeholder="e.g. 0000089827-1470"/>
+                        <field name="carrier_code" placeholder="e.g. M6"/>
+                        <field name="voyage_number" placeholder="e.g. TRADER3"/>
+                    </group>
+
+                    <group colspan="2">
+                        <field name="bol_nature"/>
+                        <field name="bol_type_code" placeholder="e.g. AWB"/>
+                        <field name="package_type_code" placeholder="e.g. CT"/>
+                        <field name="total_number_of_vehicles" placeholder="e.g. 0"/>
+                        <field name="num_of_vehicles_for_this_bol" placeholder="e.g. 0"/>
+                    </group>
+                </group>
+            </xpath>
+
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Containers">
+                    <field name="container_ids">
+                        <list editable="bottom">
+                            <field name="container_number" placeholder="e.g. MSCU1234567"/>
+                            <field name="package_count" placeholder="e.g. 5"/>
+                            <field name="weight" placeholder="e.g. 50.5"/>
+                            <field name="volume" placeholder="e.g. 2.5"/>
+                            <field name="type_of_container" placeholder="e.g. 20GP"/>
+                            <field name="empty_full" placeholder="e.g. LCL"/>
+                            <field name="marks1" placeholder="e.g. 456"/>
+                            <field name="hs_code" placeholder="e.g. 610910"/>
+                            <field name="description" placeholder="e.g. Garments"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>
