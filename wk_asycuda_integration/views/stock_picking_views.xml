@@ -25,35 +25,70 @@
             <xpath expr="//sheet/notebook" position="before">
                 <group col="4">
                     <separator string="Asycuda Manifest Data" colspan="4"/>
-                    <group colspan="2">
-                        <field name="customs_office_code" placeholder="e.g. SKBRP (5 chars)"/>
-                        <field name="place_of_departure_code" placeholder="e.g. JMKIN (5 chars)"/>
+
+                    <!-- Column 1: Customs / Location -->
+                    <group string="Customs / Location" colspan="2">
+                        <field name="customs_office_code" placeholder="e.g. SKCOU (5 chars)"/>
+                        <field name="place_of_departure_code" placeholder="e.g. USMIA (5 chars)"/>
                         <field name="place_of_destination_code" placeholder="e.g. KNBAS (5 chars)"/>
-                        <field name="shipping_agent_code" placeholder="e.g. 0000089827-1470"/>
+                        <field name="shipping_agent_code" placeholder="e.g. 0000093132-2345"/>
                         <field name="carrier_code" placeholder="e.g. M6"/>
-                        <field name="voyage_number" placeholder="e.g. TRADER3"/>
+                        <field name="voyage_number" placeholder="e.g. 001-11111111"/>
                     </group>
 
-                    <group colspan="2">
+                    <!-- Column 2: BOL / Package -->
+                    <group string="BOL / Package" colspan="2">
                         <field name="bol_nature"/>
                         <field name="bol_type_code" placeholder="e.g. AWB"/>
+                        <field name="fas_liner_cargo"/>
                         <field name="package_type_code" placeholder="e.g. CT"/>
-                        <field name="total_number_of_vehicles" placeholder="e.g. 0"/>
-                        <field name="num_of_vehicles_for_this_bol" placeholder="e.g. 0"/>
+                        <field name="total_number_of_vehicles"/>
+                        <field name="num_of_vehicles_for_this_bol"/>
+                    </group>
+
+                    <!-- Column 3: Transport -->
+                    <group string="Transport" colspan="2">
+                        <field name="mode_of_transport_code" placeholder="4 = Air, 1 = Sea"/>
+                        <field name="identity_of_transporter" placeholder="e.g. American Airlines"/>
+                        <field name="nationality_of_transporter_code" placeholder="e.g. US"/>
+                        <field name="place_of_transporter" placeholder="e.g. MIAMI"/>
+                        <field name="registration_number_of_transport_code" placeholder="e.g. SKB/IN/00001"/>
+                        <field name="master_information" placeholder="e.g. Michael Prentice"/>
+                    </group>
+
+                    <!-- Column 4: Freight / Sealing -->
+                    <group string="Freight / Sealing" colspan="2">
+                        <field name="freight_pc_indicator" placeholder="P or C"/>
+                        <field name="freight_value"/>
+                        <field name="freight_currency" placeholder="e.g. XCD"/>
+                        <field name="transport_value"/>
+                        <field name="transport_currency" placeholder="e.g. XCD"/>
+                        <field name="number_of_seals"/>
+                        <field name="marks_of_seals"/>
+                        <field name="sealing_party_code" placeholder="e.g. SH"/>
                     </group>
                 </group>
             </xpath>
 
             <xpath expr="//sheet/notebook" position="inside">
-                <page string="Containers">
+                <page string="Packages / AWBs">
+                    <group>
+                        <button
+                            name="action_load_packages_from_moves"
+                            type="object"
+                            string="Load Packages from Moves"
+                            class="btn-secondary"
+                            help="Auto-populate from this picking's stock move lines (replaces existing rows)."
+                        />
+                    </group>
                     <field name="container_ids">
                         <list editable="bottom">
-                            <field name="container_number" placeholder="e.g. MSCU1234567"/>
-                            <field name="package_count" placeholder="e.g. 5"/>
-                            <field name="weight" placeholder="e.g. 50.5"/>
-                            <field name="volume" placeholder="e.g. 2.5"/>
-                            <field name="type_of_container" placeholder="e.g. 20GP"/>
-                            <field name="empty_full" placeholder="e.g. LCL"/>
+                            <field name="container_number" placeholder="Tracking / AWB number"/>
+                            <field name="package_count"/>
+                            <field name="weight"/>
+                            <field name="volume"/>
+                            <field name="type_of_container" placeholder="20GP"/>
+                            <field name="empty_full" placeholder="LCL"/>
                             <field name="marks1" placeholder="e.g. 456"/>
                             <field name="hs_code" placeholder="e.g. 610910"/>
                             <field name="description" placeholder="e.g. Garments"/>

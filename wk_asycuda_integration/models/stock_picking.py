@@ -4,7 +4,7 @@
 #   Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>)
 #   See LICENSE file for full copyright and licensing details.
 #   License URL : <https://store.webkul.com/license.html/>
-# 
+#
 #################################################################################
 import base64
 from datetime import date, datetime
@@ -24,7 +24,7 @@ class StockPicking(models.Model):
         help="Authorized Shipping Agent Code from ASYCUDA reference/master data (max 17 chars).",
     )
     carrier_code = fields.Char(string="Carrier Code", default="M6")
-    mode_of_transport_code = fields.Char(string="Mode of Transport Code", default="1")
+    mode_of_transport_code = fields.Char(string="Mode of Transport Code", default="4")
     voyage_number = fields.Char(string="Voyage Number")
     identity_of_transporter = fields.Char(string="Identity of Transporter")
     nationality_of_transporter_code = fields.Char(string="Nationality of Transporter Code", default="US")
@@ -44,12 +44,12 @@ class StockPicking(models.Model):
     sealing_party_code = fields.Char(string="Sealing Party Code", default="SH")
     freight_pc_indicator = fields.Char(string="Freight PC Indicator", default="P")
     freight_value = fields.Float(string="Freight Value", default=0.0)
-    freight_currency = fields.Char(string="Freight Currency", default="USD")
+    freight_currency = fields.Char(string="Freight Currency", default="XCD")
     transport_value = fields.Float(string="Transport Value", default=0.0)
-    transport_currency = fields.Char(string="Transport Currency", default="USD")
+    transport_currency = fields.Char(string="Transport Currency", default="XCD")
     total_number_of_vehicles = fields.Integer(string="Total Number of Vehicles", default=0)
     num_of_vehicles_for_this_bol = fields.Integer(string="Vehicles for this BOL", default=0)
-    container_ids = fields.One2many("picking.container", "picking_id", string="Containers")
+    container_ids = fields.One2many("picking.container", "picking_id", string="Packages / AWBs")
 
     def action_generate_manifest_xml(self):
         self.ensure_one()
@@ -77,6 +77,37 @@ class StockPicking(models.Model):
         action = self.env.ref("wk_asycuda_integration.action_wk_manifest_import_wizard").read()[0]
         action["context"] = dict(self.env.context, active_id=self.id, active_ids=self.ids, active_model=self._name)
         return action
+
+    def action_load_packages_from_moves(self):
+        """Auto-populate Packages/AWBs tab from the picking's stock move lines."""
+        self.ensure_one()
+        move_lines = self.move_line_ids.filtered(lambda ml: ml.product_id)
+        if not move_lines:
+            move_lines = self.move_ids.filtered(lambda m: m.product_id).mapped("move_line_ids")
+        if not move_lines:
+            raise UserError(_("No product lines found on this picking to load."))
+
+        commands = [(5, 0, 0)]
+        for idx, ml in enumerate(move_lines, start=1):
+            product = ml.product_id
+            lot = ml.lot_id
+            qty = ml.qty_done or ml.reserved_qty or 1.0
+            tracking_ref = (lot.name if lot else "") or ("%s-%03d" % (self.name.replace("/", ""), idx))
+            weight = qty * (product.weight or 0.0)
+            volume = qty * (product.volume or 0.0)
+            hs_code = self._clip(getattr(product, "l10n_ec_hs_code", "") or getattr(product, "hs_code", "") or "", max_len=6, default="")
+            commands.append((0, 0, {
+                "container_number": self._clip(tracking_ref, max_len=17, default="PKG%014d" % idx),
+                "package_count": 1,
+                "weight": weight,
+                "volume": volume,
+                "description": self._clip(product.name, max_len=2000, default="GOODS"),
+                "hs_code": hs_code,
+                "marks1": self._clip(ml.lot_id.name or product.default_code or "", max_len=10, default=""),
+                "type_of_container": "20GP",
+                "empty_full": "LCL",
+            }))
+        self.write({"container_ids": commands})
 
     def action_import_manifest_xml_data(self, file_data):
         self.ensure_one()
@@ -133,90 +164,90 @@ class StockPicking(models.Model):
                 self._set_if_present(vals, "place_of_departure_code", self._xml_child_text(general_load_unload, "Place_of_departure_code"))
                 self._set_if_present(vals, "place_of_destination_code", self._xml_child_text(general_load_unload, "Place_of_destination_code"))
 
-        bol_segment = self._xml_child(root, "Bol_segment")
+        # Read all BOL segments — one per package/AWB
+        bol_segments = self._xml_children(root, "Bol_segment")
         container_commands = []
-        if bol_segment is not None:
-            bol_id = self._xml_child(bol_segment, "Bol_id")
-            if bol_id is not None:
-                self._set_if_present(vals, "bol_nature", self._xml_child_text(bol_id, "Bol_nature"))
-                self._set_if_present(vals, "bol_type_code", self._xml_child_text(bol_id, "Bol_type_code"))
-                self._set_if_present(vals, "fas_liner_cargo", self._xml_child_text(bol_id, "FAS_Liner_Cargo"))
+        first_bol = True
+        for bol_segment in bol_segments:
+            # Only read picking-level fields from the first BOL segment
+            if first_bol:
+                bol_id_el = self._xml_child(bol_segment, "Bol_id")
+                if bol_id_el is not None:
+                    self._set_if_present(vals, "bol_nature", self._xml_child_text(bol_id_el, "Bol_nature"))
+                    self._set_if_present(vals, "bol_type_code", self._xml_child_text(bol_id_el, "Bol_type_code"))
+                    self._set_if_present(vals, "fas_liner_cargo", self._xml_child_text(bol_id_el, "FAS_Liner_Cargo"))
 
-            bol_load_unload = self._xml_child(bol_segment, "Load_unload_place")
-            if bol_load_unload is not None:
-                if "place_of_departure_code" not in vals:
-                    self._set_if_present(vals, "place_of_departure_code", self._xml_child_text(bol_load_unload, "Place_of_loading_code"))
-                if "place_of_destination_code" not in vals:
-                    self._set_if_present(vals, "place_of_destination_code", self._xml_child_text(bol_load_unload, "Place_of_unloading_code"))
+                bol_load_unload = self._xml_child(bol_segment, "Load_unload_place")
+                if bol_load_unload is not None:
+                    if "place_of_departure_code" not in vals:
+                        self._set_if_present(vals, "place_of_departure_code", self._xml_child_text(bol_load_unload, "Place_of_loading_code"))
+                    if "place_of_destination_code" not in vals:
+                        self._set_if_present(vals, "place_of_destination_code", self._xml_child_text(bol_load_unload, "Place_of_unloading_code"))
 
+                goods_segment = self._xml_child(bol_segment, "Goods_segment")
+                if goods_segment is not None:
+                    self._set_if_present(vals, "package_type_code", self._xml_child_text(goods_segment, "Package_type_code"))
+                    vals["num_of_vehicles_for_this_bol"] = self._to_int(
+                        self._xml_child_text(goods_segment, "Num_of_vehicles_for_this_bol"),
+                        default=self.num_of_vehicles_for_this_bol,
+                    )
+                    seals_segment = self._xml_child(goods_segment, "Seals_segment")
+                    if seals_segment is not None:
+                        vals["number_of_seals"] = self._to_int(
+                            self._xml_child_text(seals_segment, "Number_of_seals"),
+                            default=self.number_of_seals,
+                        )
+                        self._set_if_present(vals, "marks_of_seals", self._xml_child_text(seals_segment, "Marks_of_seals"))
+                        self._set_if_present(vals, "sealing_party_code", self._xml_child_text(seals_segment, "Sealing_party_code"))
+
+                value_segment = self._xml_child(bol_segment, "Value_segment")
+                if value_segment is not None:
+                    freight_segment = self._xml_child(value_segment, "Freight_segment")
+                    if freight_segment is not None:
+                        self._set_if_present(vals, "freight_pc_indicator", self._xml_child_text(freight_segment, "PC_indicator"))
+                        vals["freight_value"] = self._to_float(
+                            self._xml_child_text(freight_segment, "Freight_value"),
+                            default=self.freight_value,
+                        )
+                        self._set_if_present(vals, "freight_currency", self._xml_child_text(freight_segment, "Freight_currency"))
+
+                    transport_segment = self._xml_child(value_segment, "Transport_segment")
+                    if transport_segment is not None:
+                        vals["transport_value"] = self._to_float(
+                            self._xml_child_text(transport_segment, "Transport_value"),
+                            default=self.transport_value,
+                        )
+                        self._set_if_present(vals, "transport_currency", self._xml_child_text(transport_segment, "Transport_currency"))
+
+                first_bol = False
+
+            # Each BOL segment becomes one container/package row
+            bol_id_el = self._xml_child(bol_segment, "Bol_id")
+            bol_reference = self._xml_child_text(bol_id_el, "Bol_reference") if bol_id_el is not None else ""
             goods_segment = self._xml_child(bol_segment, "Goods_segment")
+            pkg_count = 1
+            gross_mass = 0.0
+            description = ""
             if goods_segment is not None:
-                self._set_if_present(vals, "package_type_code", self._xml_child_text(goods_segment, "Package_type_code"))
-                vals["num_of_vehicles_for_this_bol"] = self._to_int(
-                    self._xml_child_text(goods_segment, "Num_of_vehicles_for_this_bol"),
-                    default=self.num_of_vehicles_for_this_bol,
-                )
+                pkg_count = self._to_int(self._xml_child_text(goods_segment, "Number_of_packages"), default=1)
+                gross_mass = self._to_float(self._xml_child_text(goods_segment, "Gross_mass"), default=0.0)
+                description = self._xml_child_text(goods_segment, "Goods_description")
+                volume = self._to_float(self._xml_child_text(goods_segment, "Volume_in_cubic_meters"), default=0.0)
+            else:
+                volume = 0.0
 
-                seals_segment = self._xml_child(goods_segment, "Seals_segment")
-                if seals_segment is not None:
-                    vals["number_of_seals"] = self._to_int(
-                        self._xml_child_text(seals_segment, "Number_of_seals"),
-                        default=self.number_of_seals,
-                    )
-                    self._set_if_present(vals, "marks_of_seals", self._xml_child_text(seals_segment, "Marks_of_seals"))
-                    self._set_if_present(vals, "sealing_party_code", self._xml_child_text(seals_segment, "Sealing_party_code"))
-
-            value_segment = self._xml_child(bol_segment, "Value_segment")
-            if value_segment is not None:
-                freight_segment = self._xml_child(value_segment, "Freight_segment")
-                if freight_segment is not None:
-                    self._set_if_present(vals, "freight_pc_indicator", self._xml_child_text(freight_segment, "PC_indicator"))
-                    vals["freight_value"] = self._to_float(
-                        self._xml_child_text(freight_segment, "Freight_value"),
-                        default=self.freight_value,
-                    )
-                    self._set_if_present(vals, "freight_currency", self._xml_child_text(freight_segment, "Freight_currency"))
-
-                transport_segment = self._xml_child(value_segment, "Transport_segment")
-                if transport_segment is not None:
-                    vals["transport_value"] = self._to_float(
-                        self._xml_child_text(transport_segment, "Transport_value"),
-                        default=self.transport_value,
-                    )
-                    self._set_if_present(vals, "transport_currency", self._xml_child_text(transport_segment, "Transport_currency"))
-
-            ctn_segments = self._xml_children(bol_segment, "ctn_segment")
-            if ctn_segments:
-                container_commands = [(5, 0, 0)]
-                for ctn in ctn_segments:
-                    ctn_vals = {
-                        "container_number": self._clip(
-                            self._xml_child_text(ctn, "Ctn_reference"),
-                            max_len=17,
-                            default="CONT0000000000000",
-                        ),
-                        "package_count": self._to_int(self._xml_child_text(ctn, "Number_of_packages"), default=0),
-                        "weight": self._to_float(self._xml_child_text(ctn, "Goods_weight"), default=0.0),
-                        "volume": self._to_float(self._xml_child_text(ctn, "Ctn_volume"), default=0.0),
-                        "type_of_container": self._clip(
-                            self._xml_child_text(ctn, "Type_of_container"),
-                            max_len=4,
-                            default="20GP",
-                        ),
-                        "empty_full": self._clip(
-                            self._xml_child_text(ctn, "Empty_Full"),
-                            max_len=3,
-                            default="LCL",
-                        ),
-                        "marks1": self._clip(self._xml_child_text(ctn, "Marks1"), max_len=10, default=""),
-                        "hs_code": self._clip(self._xml_child_text(ctn, "Ctn_hs_code"), max_len=6, default=""),
-                        "description": self._clip(
-                            self._xml_child_text(ctn, "Ctn_goods_description"),
-                            max_len=2000,
-                            default="",
-                        ),
-                    }
-                    container_commands.append((0, 0, ctn_vals))
+            ctn_vals = {
+                "container_number": self._clip(bol_reference, max_len=17, default="PKG0000000000000"),
+                "package_count": pkg_count,
+                "weight": gross_mass,
+                "volume": volume,
+                "type_of_container": "20GP",
+                "empty_full": "LCL",
+                "description": self._clip(description, max_len=2000, default=""),
+            }
+            if not container_commands:
+                container_commands.append((5, 0, 0))
+            container_commands.append((0, 0, ctn_vals))
 
         if vals:
             self.write(vals)
@@ -227,9 +258,9 @@ class StockPicking(models.Model):
     def _check_manifest_requirements(self):
         self.ensure_one()
         if not self.partner_id:
-            raise UserError(_("Consignee is required before generating ASYCUDA manifest XML."))
+            raise UserError(_("Partner (vendor/consignee) is required before generating ASYCUDA manifest XML."))
         if not self.container_ids:
-            raise UserError(_("At least one container is required before generating ASYCUDA manifest XML."))
+            raise UserError(_("At least one package/AWB is required. Use 'Load Packages from Moves' or add them manually."))
         self._validate_reference_code(self.customs_office_code, _("Customs Office Code"))
         self._validate_reference_code(self.place_of_departure_code, _("Place of Departure Code"))
         self._validate_reference_code(self.place_of_destination_code, _("Place of Destination Code"))
@@ -259,38 +290,50 @@ class StockPicking(models.Model):
             raise UserError(_("Vehicles for this BOL cannot be negative."))
 
         for container in self.container_ids:
-            self._validate_max_len(container.container_number, _("Container Number"), 17, required=True)
+            self._validate_max_len(container.container_number, _("Package/AWB Number"), 17, required=True)
             self._validate_max_len(container.type_of_container, _("Type of Container"), 4)
             self._validate_max_len(container.empty_full, _("Empty/Full"), 3)
             self._validate_max_len(container.marks1, _("Marks 1"), 10)
             if (container.package_count or 0) < 0:
-                raise UserError(_("Container Package Count cannot be negative."))
+                raise UserError(_("Package Count cannot be negative."))
             if (container.weight or 0.0) < 0:
-                raise UserError(_("Container Weight cannot be negative."))
+                raise UserError(_("Package Weight cannot be negative."))
             if (container.volume or 0.0) < 0:
-                raise UserError(_("Container Volume cannot be negative."))
+                raise UserError(_("Package Volume cannot be negative."))
 
     def _build_awmds_xml(self):
         self.ensure_one()
 
-        containers = self.container_ids
+        packages = self.container_ids
         partner = self.partner_id
         company = self.company_id
         company_partner = company.partner_id
 
-        total_bols = 1
-        total_packages = sum(containers.mapped("package_count"))
-        total_containers = len(containers)
-        total_gross_mass = sum(containers.mapped("weight"))
+        # For air shipments: bills = number of AWBs, containers = 0
+        total_bols = len(packages)
+        total_packages = sum(packages.mapped("package_count"))
+        total_gross_mass = sum(packages.mapped("weight"))
+
+        # For incoming receipts: the vendor (partner) is the Exporter,
+        # the local company is the Consignee.
+        # For outgoing deliveries: the company is the Exporter,
+        # the customer (partner) is the Consignee.
+        is_incoming = self.picking_type_code == "incoming"
+        if is_incoming:
+            exporter_partner = partner
+            consignee_partner = company_partner
+        else:
+            exporter_partner = company_partner
+            consignee_partner = partner
 
         carrier_code = self._clip(self.carrier_code or company_partner.ref, max_len=17, default="M6")
         shipping_agent_code = self._clip(self.shipping_agent_code, max_len=17, default="")
-        mode_of_transport_code = self._clip(self.mode_of_transport_code, max_len=3, default="1")
+        mode_of_transport_code = self._clip(self.mode_of_transport_code, max_len=3, default="4")
         voyage_number = self._clip(self.voyage_number or self.origin or self.name, max_len=17, default="TRADER3")
         identity_of_transporter = self._clip(
             self.identity_of_transporter or company.name,
             max_len=27,
-            default="NOT AMERICA JET",
+            default="AMERICAN AIRLINES",
         )
         nationality_of_transporter_code = self._clip(
             self.nationality_of_transporter_code or company_partner.country_id.code,
@@ -306,12 +349,12 @@ class StockPicking(models.Model):
         registration_number_of_transport_code = self._clip(
             self.registration_number_of_transport_code or self.name,
             max_len=35,
-            default="4545454545",
+            default="",
         )
         master_information = self._clip(
             self.master_information or self.user_id.name or self.env.user.name,
             max_len=70,
-            default="JASON PETERS",
+            default="",
         )
         bol_type_code = self._clip(self.bol_type_code, max_len=3, default="AWB")
         package_type_code = self._clip(self.package_type_code, max_len=17, default="CT")
@@ -319,10 +362,9 @@ class StockPicking(models.Model):
         marks_of_seals = self._clip(self.marks_of_seals, max_len=20, default="SALVAE")
         sealing_party_code = self._clip(self.sealing_party_code, max_len=3, default="SH")
         freight_pc_indicator = self._clip(self.freight_pc_indicator, max_len=3, default="P")
-        freight_currency = self._clip(self.freight_currency, max_len=3, default="USD", upper=True)
-        transport_currency = self._clip(self.transport_currency, max_len=3, default="USD", upper=True)
+        freight_currency = self._clip(self.freight_currency, max_len=3, default="XCD", upper=True)
+        transport_currency = self._clip(self.transport_currency, max_len=3, default="XCD", upper=True)
         total_vehicles = max(self.total_number_of_vehicles or 0, 0)
-        bol_vehicles = max(self.num_of_vehicles_for_this_bol or 0, 0)
         customs_office_code = self._validate_reference_code(self.customs_office_code, _("Customs Office Code"))
         place_departure_code = self._validate_reference_code(self.place_of_departure_code, _("Place of Departure Code"))
         place_destination_code = self._validate_reference_code(self.place_of_destination_code, _("Place of Destination Code"))
@@ -330,7 +372,7 @@ class StockPicking(models.Model):
         root = etree.Element("Awmds", nsmap={"xsi": "http://www.w3.org/2001/XMLSchema-instance"})
         root.set("{http://www.w3.org/2001/XMLSchema-instance}noNamespaceSchemaLocation", "Awmds.xsd")
 
-        # General_segment
+        # ── General_segment ──────────────────────────────────────────────────
         general_segment = etree.SubElement(root, "General_segment")
 
         general_segment_id = etree.SubElement(general_segment, "General_segment_id")
@@ -338,11 +380,12 @@ class StockPicking(models.Model):
         self._xml_text(general_segment_id, "Voyage_number", voyage_number)
         self._xml_text(general_segment_id, "Date_of_departure", self._aw_date(self.scheduled_date or self.date_done))
         self._xml_text(general_segment_id, "Date_of_arrival", self._aw_date(self.date_done or self.scheduled_date))
+        self._xml_text(general_segment_id, "Time_of_arrival", self._aw_time(self.date_done or self.scheduled_date))
 
         totals_segment = etree.SubElement(general_segment, "Totals_segment")
         self._xml_text(totals_segment, "Total_number_of_bols", self._aw_number(total_bols))
         self._xml_text(totals_segment, "Total_number_of_packages", self._aw_number(total_packages))
-        self._xml_text(totals_segment, "Total_number_of_containers", self._aw_number(total_containers))
+        self._xml_text(totals_segment, "Total_number_of_containers", "0")
         self._xml_text(totals_segment, "Total_number_of_vehicles", str(total_vehicles))
         self._xml_text(totals_segment, "Total_gross_mass", self._aw_number(total_gross_mass))
 
@@ -367,83 +410,74 @@ class StockPicking(models.Model):
         self._xml_text(tonnage, "Tonnage_net_weight", self._aw_number(total_gross_mass))
         self._xml_text(tonnage, "Tonnage_gross_weight", self._aw_number(total_gross_mass))
 
-        # Bol_segment
-        bol_segment = etree.SubElement(root, "Bol_segment")
+        # ── One Bol_segment per package/AWB ──────────────────────────────────
+        for line_number, pkg in enumerate(packages, start=1):
+            bol_segment = etree.SubElement(root, "Bol_segment")
 
-        bol_id = etree.SubElement(bol_segment, "Bol_id")
-        self._xml_text(bol_id, "Bol_reference", self._clip(self.name, max_len=25, default="AM001"))
-        self._xml_text(bol_id, "Line_number", "1")
-        self._xml_text(bol_id, "Bol_nature", self.bol_nature or "23")
-        self._xml_text(bol_id, "Bol_type_code", bol_type_code)
-        self._xml_text(bol_id, "FAS_Liner_Cargo", self.fas_liner_cargo or "F")
+            bol_id = etree.SubElement(bol_segment, "Bol_id")
+            # Bol_reference = the individual AWB / tracking number for this package
+            self._xml_text(bol_id, "Bol_reference", self._clip(pkg.container_number, max_len=25, default="AWB%022d" % line_number))
+            self._xml_text(bol_id, "Line_number", str(line_number))
+            self._xml_text(bol_id, "Bol_nature", self.bol_nature or "23")
+            self._xml_text(bol_id, "Bol_type_code", bol_type_code)
+            self._xml_text(bol_id, "FAS_Liner_Cargo", self.fas_liner_cargo or "F")
 
-        bol_transport = etree.SubElement(bol_segment, "Transport_information")
-        bol_carrier = etree.SubElement(bol_transport, "Carrier")
-        self._xml_text(bol_carrier, "Carrier_code", carrier_code)
-        bol_shipping_agent = etree.SubElement(bol_transport, "Shipping_Agent")
-        self._xml_text(bol_shipping_agent, "Shipping_Agent_code", shipping_agent_code)
+            bol_transport = etree.SubElement(bol_segment, "Transport_information")
+            bol_carrier = etree.SubElement(bol_transport, "Carrier")
+            self._xml_text(bol_carrier, "Carrier_code", carrier_code)
+            bol_shipping_agent = etree.SubElement(bol_transport, "Shipping_Agent")
+            self._xml_text(bol_shipping_agent, "Shipping_Agent_code", shipping_agent_code)
 
-        bol_load_unload = etree.SubElement(bol_segment, "Load_unload_place")
-        self._xml_text(bol_load_unload, "Place_of_loading_code", place_departure_code)
-        self._xml_text(bol_load_unload, "Place_of_unloading_code", place_destination_code)
+            bol_load_unload = etree.SubElement(bol_segment, "Load_unload_place")
+            self._xml_text(bol_load_unload, "Place_of_loading_code", place_departure_code)
+            self._xml_text(bol_load_unload, "Place_of_unloading_code", place_destination_code)
 
-        traders_segment = etree.SubElement(bol_segment, "Traders_segment")
+            traders_segment = etree.SubElement(bol_segment, "Traders_segment")
 
-        exporter = etree.SubElement(traders_segment, "Exporter")
-        self._xml_text(exporter, "Exporter_name", self._clip(company.name, max_len=140, default="ELSA BAPTISTE"))
-        self._xml_text(exporter, "Exporter_address", self._value_or_default(self._partner_address(company.partner_id), "CASTRIES"))
+            exporter = etree.SubElement(traders_segment, "Exporter")
+            self._xml_text(exporter, "Exporter_name", self._clip(exporter_partner.name, max_len=140, default=""))
+            self._xml_text(exporter, "Exporter_address", self._value_or_default(self._partner_address(exporter_partner), ""))
 
-        notify = etree.SubElement(traders_segment, "Notify")
-        self._xml_text(notify, "Notify_name", self._clip(partner.name, max_len=140, default="MARY JAMES"))
-        self._xml_text(notify, "Notify_address", self._value_or_default(self._partner_address(partner), "BELMONT"))
+            notify = etree.SubElement(traders_segment, "Notify")
+            self._xml_text(notify, "Notify_name", self._clip(consignee_partner.name, max_len=140, default=""))
+            self._xml_text(notify, "Notify_address", self._value_or_default(self._partner_address(consignee_partner), ""))
 
-        consignee = etree.SubElement(traders_segment, "Consignee")
-        self._xml_text(consignee, "Consignee_name", self._clip(partner.name, max_len=140, default="MARY JAMES"))
-        self._xml_text(consignee, "Consignee_address", self._value_or_default(self._partner_address(partner), "BELMONT"))
+            consignee_el = etree.SubElement(traders_segment, "Consignee")
+            self._xml_text(consignee_el, "Consignee_name", self._clip(consignee_partner.name, max_len=140, default=""))
+            self._xml_text(consignee_el, "Consignee_address", self._value_or_default(self._partner_address(consignee_partner), ""))
 
-        for container in containers:
-            ctn_segment = etree.SubElement(bol_segment, "ctn_segment")
-            self._xml_text(ctn_segment, "Ctn_reference", self._clip(container.container_number, max_len=17, default="CONT0000000000000"))
-            self._xml_text(ctn_segment, "Number_of_packages", str(int(max(container.package_count or 0, 0))))
-            self._xml_text(ctn_segment, "Type_of_container", self._clip(container.type_of_container, max_len=4, default="20GP"))
-            self._xml_text(ctn_segment, "Empty_Full", self._clip(container.empty_full, max_len=3, default="LCL"))
-            self._xml_text(ctn_segment, "Marks1", self._clip(container.marks1 or container.hs_code, max_len=10, default="456"))
-            self._xml_text(
-                ctn_segment,
-                "Ctn_goods_description",
-                self._clip(container.description, max_len=2000, default="GOODS"),
-            )
-            ctn_volume = container.volume if container.volume not in (None, False) else container.weight
-            self._xml_text(ctn_segment, "Ctn_volume", self._aw_number(max(ctn_volume or 0.0, 0.0)))
+            pkg_count = max(pkg.package_count or 1, 1)
+            gross_mass = max(pkg.weight or 0.0, 0.0)
+            ctn_volume = pkg.volume if pkg.volume not in (None, False) else pkg.weight
 
-        goods_segment = etree.SubElement(bol_segment, "Goods_segment")
-        self._xml_text(goods_segment, "Number_of_packages", self._aw_number(total_packages))
-        self._xml_text(goods_segment, "Package_type_code", package_type_code)
-        self._xml_text(goods_segment, "Gross_mass", self._aw_number(total_gross_mass))
-        self._xml_text(goods_segment, "Shipping_marks", self._clip(partner.name, max_len=2000, default="SHIPPER"))
-        self._xml_text(goods_segment, "Goods_description", self._build_goods_description(containers))
+            goods_segment = etree.SubElement(bol_segment, "Goods_segment")
+            self._xml_text(goods_segment, "Number_of_packages", str(pkg_count))
+            self._xml_text(goods_segment, "Package_type_code", package_type_code)
+            self._xml_text(goods_segment, "Gross_mass", self._aw_number(gross_mass))
+            self._xml_text(goods_segment, "Shipping_marks", self._clip(consignee_partner.name, max_len=2000, default=""))
+            self._xml_text(goods_segment, "Goods_description", self._clip(pkg.description, max_len=2000, default="GOODS"))
 
-        seals_segment = etree.SubElement(goods_segment, "Seals_segment")
-        self._xml_text(seals_segment, "Number_of_seals", str(seals_count))
-        self._xml_text(seals_segment, "Marks_of_seals", marks_of_seals)
-        self._xml_text(seals_segment, "Sealing_party_code", sealing_party_code)
+            seals_segment = etree.SubElement(goods_segment, "Seals_segment")
+            self._xml_text(seals_segment, "Number_of_seals", str(seals_count))
+            self._xml_text(seals_segment, "Marks_of_seals", marks_of_seals)
+            self._xml_text(seals_segment, "Sealing_party_code", sealing_party_code)
 
-        self._xml_text(goods_segment, "Volume_in_cubic_meters", self._aw_number(total_gross_mass))
-        self._xml_text(goods_segment, "Num_of_ctn_for_this_bol", self._aw_number(total_containers))
-        self._xml_text(goods_segment, "Num_of_vehicles_for_this_bol", str(bol_vehicles))
+            self._xml_text(goods_segment, "Volume_in_cubic_meters", self._aw_number(max(ctn_volume or 0.0, 0.0)))
+            self._xml_text(goods_segment, "Num_of_ctn_for_this_bol", "0")
+            self._xml_text(goods_segment, "Num_of_vehicles_for_this_bol", "0")
 
-        value_segment = etree.SubElement(bol_segment, "Value_segment")
-        freight_segment = etree.SubElement(value_segment, "Freight_segment")
-        self._xml_text(freight_segment, "PC_indicator", freight_pc_indicator)
-        self._xml_text(freight_segment, "Freight_value", self._aw_number(max(self.freight_value or 0.0, 0.0)))
-        self._xml_text(freight_segment, "Freight_currency", freight_currency)
+            value_segment = etree.SubElement(bol_segment, "Value_segment")
+            freight_segment = etree.SubElement(value_segment, "Freight_segment")
+            self._xml_text(freight_segment, "PC_indicator", freight_pc_indicator)
+            self._xml_text(freight_segment, "Freight_value", self._aw_number(max(self.freight_value or 0.0, 0.0)))
+            self._xml_text(freight_segment, "Freight_currency", freight_currency)
 
-        transport_segment = etree.SubElement(value_segment, "Transport_segment")
-        self._xml_text(transport_segment, "Transport_value", self._aw_number(max(self.transport_value or 0.0, 0.0)))
-        self._xml_text(transport_segment, "Transport_currency", transport_currency)
+            transport_segment = etree.SubElement(value_segment, "Transport_segment")
+            self._xml_text(transport_segment, "Transport_value", self._aw_number(max(self.transport_value or 0.0, 0.0)))
+            self._xml_text(transport_segment, "Transport_currency", transport_currency)
 
-        location = etree.SubElement(bol_segment, "Location")
-        self._xml_text(location, "Location_code", "")
+            location = etree.SubElement(bol_segment, "Location")
+            self._xml_text(location, "Location_code", "")
 
         return etree.tostring(root, pretty_print=True, xml_declaration=True, encoding="UTF-8")
 
@@ -491,6 +525,18 @@ class StockPicking(models.Model):
             pass
 
         return fields.Date.to_string(fields.Date.context_today(self))
+
+    def _aw_time(self, value):
+        """Return HH:MM string from a datetime value for ASYCUDA Time_of_arrival."""
+        if not value:
+            return ""
+        dt = value if isinstance(value, datetime) else None
+        if dt is None:
+            try:
+                dt = fields.Datetime.to_datetime(value)
+            except Exception:
+                pass
+        return dt.strftime("%H:%M") if dt else ""
 
     def _value_or_default(self, value, default=""):
         if value in (None, False, ""):
@@ -572,9 +618,3 @@ class StockPicking(models.Model):
             return ""
         parts = [partner.street, partner.street2, partner.city, partner.zip, partner.country_id.code]
         return ", ".join(part for part in parts if part)
-
-    def _build_goods_description(self, containers):
-        descriptions = [desc for desc in containers.mapped("description") if desc]
-        if descriptions:
-            return ", ".join(descriptions)
-        return "GOODS"
