@@ -257,8 +257,8 @@ class StockPicking(models.Model):
 
     def _check_manifest_requirements(self):
         self.ensure_one()
-        if not self.partner_id:
-            raise UserError(_("Partner (vendor/consignee) is required before generating ASYCUDA manifest XML."))
+        # if not self.partner_id:
+        #     raise UserError(_("Partner (vendor/consignee) is required before generating ASYCUDA manifest XML."))
         if not self.container_ids:
             raise UserError(_("At least one package/AWB is required. Use 'Load Packages from Moves' or add them manually."))
         self._validate_reference_code(self.customs_office_code, _("Customs Office Code"))
