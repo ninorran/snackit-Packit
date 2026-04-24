@@ -536,7 +536,7 @@ class StockPicking(models.Model):
                 dt = fields.Datetime.to_datetime(value)
             except Exception:
                 pass
-        return dt.strftime("%H:%M") if dt else ""
+        return dt.strftime("%H:%M:%S") if dt else ""
 
     def _value_or_default(self, value, default=""):
         if value in (None, False, ""):
