@@ -9,7 +9,7 @@
 import base64
 from datetime import date, datetime
 from lxml import etree
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 
 
@@ -50,6 +50,64 @@ class StockPicking(models.Model):
     total_number_of_vehicles = fields.Integer(string="Total Number of Vehicles", default=0)
     num_of_vehicles_for_this_bol = fields.Integer(string="Vehicles for this BOL", default=0)
     container_ids = fields.One2many("picking.container", "picking_id", string="Packages / AWBs")
+    customer_id = fields.Many2one(
+        "res.partner",
+        string="Customer",
+        required=True,
+        domain=[("customer_rank", ">", 0)],
+    )
+    customer_address = fields.Char(string="Customer Address", compute="_compute_customer_address", store=True)
+    supplier_id = fields.Many2one(
+        "res.partner",
+        string="Supplier",
+        required=True,
+        domain=[("supplier_rank", ">", 0)],
+    )
+    supplier_address = fields.Char(string="Supplier Address", compute="_compute_supplier_address", store=True)
+
+    @api.depends("customer_id", "customer_id.street", "customer_id.street2", "customer_id.city", "customer_id.zip", "customer_id.country_id")
+    def _compute_customer_address(self):
+        for rec in self:
+            rec.customer_address = self._format_partner_address(rec.customer_id)
+
+    @api.depends("supplier_id", "supplier_id.street", "supplier_id.street2", "supplier_id.city", "supplier_id.zip", "supplier_id.country_id")
+    def _compute_supplier_address(self):
+        for rec in self:
+            rec.supplier_address = self._format_partner_address(rec.supplier_id)
+
+    def _format_partner_address(self, partner):
+        if not partner:
+            return ""
+        parts = [partner.street, partner.street2, partner.city, partner.zip, partner.country_id.code]
+        return ", ".join(p for p in parts if p)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        for rec in records:
+            rec._auto_fill_customer_supplier()
+        return records
+
+    def _auto_fill_customer_supplier(self):
+        partner = self.partner_id
+        if not partner:
+            return
+        write_vals = {}
+        if self.picking_type_code == "outgoing" and not self.customer_id:
+            write_vals["customer_id"] = partner.id
+        elif self.picking_type_code == "incoming" and not self.supplier_id:
+            write_vals["supplier_id"] = partner.id
+        if write_vals:
+            self.write(write_vals)
+
+    @api.onchange("partner_id", "picking_type_id")
+    def _onchange_partner_auto_fill(self):
+        if not self.partner_id:
+            return
+        if self.picking_type_code == "outgoing":
+            self.customer_id = self.partner_id
+        elif self.picking_type_code == "incoming":
+            self.supplier_id = self.partner_id
 
     def action_generate_manifest_xml(self):
         self.ensure_one()
@@ -434,21 +492,24 @@ class StockPicking(models.Model):
 
             traders_segment = etree.SubElement(bol_segment, "Traders_segment")
 
+            pkg_exporter = self.supplier_id or exporter_partner
+            pkg_consignee = self.customer_id or consignee_partner
+
             exporter = etree.SubElement(traders_segment, "Exporter")
-            self._xml_text(exporter, "Exporter_name", self._clip(exporter_partner.name, max_len=140, default=""))
-            self._xml_text(exporter, "Exporter_address", self._value_or_default(self._partner_address(exporter_partner), ""))
+            self._xml_text(exporter, "Exporter_name", self._clip(pkg_exporter.name, max_len=140, default=""))
+            self._xml_text(exporter, "Exporter_address", self._value_or_default(self._partner_address(pkg_exporter), ""))
 
             notify = etree.SubElement(traders_segment, "Notify")
-            self._xml_text(notify, "Notify_name", self._clip(consignee_partner.name, max_len=140, default=""))
-            self._xml_text(notify, "Notify_address", self._value_or_default(self._partner_address(consignee_partner), ""))
+            self._xml_text(notify, "Notify_name", self._clip(pkg_consignee.name, max_len=140, default=""))
+            self._xml_text(notify, "Notify_address", self._value_or_default(self._partner_address(pkg_consignee), ""))
 
             consignee_el = etree.SubElement(traders_segment, "Consignee")
-            self._xml_text(consignee_el, "Consignee_name", self._clip(consignee_partner.name, max_len=140, default=""))
-            self._xml_text(consignee_el, "Consignee_address", self._value_or_default(self._partner_address(consignee_partner), ""))
+            self._xml_text(consignee_el, "Consignee_name", self._clip(pkg_consignee.name, max_len=140, default=""))
+            self._xml_text(consignee_el, "Consignee_address", self._value_or_default(self._partner_address(pkg_consignee), ""))
 
             pkg_count = max(pkg.package_count or 1, 1)
             gross_mass = max(pkg.weight or 0.0, 0.0)
-            ctn_volume = pkg.volume if pkg.volume not in (None, False) else pkg.weight
+            ctn_volume = 0.0
 
             goods_segment = etree.SubElement(bol_segment, "Goods_segment")
             self._xml_text(goods_segment, "Number_of_packages", str(pkg_count))
