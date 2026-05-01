@@ -72,16 +72,6 @@
 
             <xpath expr="//sheet/notebook" position="inside">
                 <page string="Packages / AWBs">
-                    <group col="4">
-                        <group string="Customer" colspan="2">
-                            <field name="customer_id" options="{'no_create': True}"/>
-                            <field name="customer_address" readonly="1"/>
-                        </group>
-                        <group string="Supplier" colspan="2">
-                            <field name="supplier_id" options="{'no_create': True}"/>
-                            <field name="supplier_address" readonly="1"/>
-                        </group>
-                    </group>
                     <group>
                         <button
                             name="action_load_packages_from_moves"
@@ -102,6 +92,10 @@
                             <field name="marks1" placeholder="e.g. 456"/>
                             <field name="hs_code" placeholder="e.g. 610910"/>
                             <field name="description" placeholder="e.g. Garments"/>
+                            <field name="customer_id" options="{'no_create': True}"/>
+                            <field name="customer_address" readonly="1"/>
+                            <field name="supplier_id" options="{'no_create': True}"/>
+                            <field name="supplier_address" readonly="1"/>
                         </list>
                     </field>
                 </page>
