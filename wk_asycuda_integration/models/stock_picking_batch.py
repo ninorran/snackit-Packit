@@ -4,11 +4,11 @@ from odoo import _, fields, models
 from odoo.exceptions import UserError
 
 
-class StockPicking(models.Model):
-    _name = "stock.picking"
-    _inherit = ["stock.picking", "asycuda.manifest.mixin"]
+class StockPickingBatch(models.Model):
+    _name = "stock.picking.batch"
+    _inherit = ["stock.picking.batch", "asycuda.manifest.mixin"]
 
-    container_ids = fields.One2many("picking.container", "picking_id", string="Packages / AWBs")
+    container_ids = fields.One2many("batch.container", "batch_id", string="Packages / AWBs")
 
     def action_generate_manifest_xml(self):
         self.ensure_one()
@@ -20,7 +20,7 @@ class StockPicking(models.Model):
             "type": "binary",
             "datas": base64.b64encode(xml_bytes),
             "mimetype": "application/xml",
-            "res_model": "stock.picking",
+            "res_model": "stock.picking.batch",
             "res_id": self.id,
         })
         return {
@@ -36,19 +36,25 @@ class StockPicking(models.Model):
         return action
 
     def action_load_packages_from_moves(self):
+        """Auto-populate Packages/AWBs from all move lines across all pickings in the batch."""
         self.ensure_one()
-        move_lines = self.move_line_ids.filtered(lambda ml: ml.product_id)
-        if not move_lines:
-            move_lines = self.move_ids.filtered(lambda m: m.product_id).mapped("move_line_ids")
-        if not move_lines:
-            raise UserError(_("No product lines found on this picking to load."))
+        all_move_lines = self.env["stock.move.line"]
+        for picking in self.picking_ids:
+            mls = picking.move_line_ids.filtered(lambda ml: ml.product_id)
+            if not mls:
+                mls = picking.move_ids.filtered(lambda m: m.product_id).mapped("move_line_ids")
+            all_move_lines |= mls
+
+        if not all_move_lines:
+            raise UserError(_("No product lines found across the pickings in this batch."))
 
         commands = [(5, 0, 0)]
-        for idx, ml in enumerate(move_lines, start=1):
+        for idx, ml in enumerate(all_move_lines, start=1):
             product = ml.product_id
             lot = ml.lot_id
             qty = ml.qty_done or ml.quantity or 1.0
-            tracking_ref = (lot.name if lot else "") or ("%s-%03d" % (self.name.replace("/", ""), idx))
+            picking_name = ml.picking_id.name or self.name
+            tracking_ref = (lot.name if lot else "") or ("%s-%03d" % (picking_name.replace("/", ""), idx))
             weight = qty * (product.weight or 0.0)
             volume = qty * (product.volume or 0.0)
             hs_code = self._clip(getattr(product, "l10n_ec_hs_code", "") or getattr(product, "hs_code", "") or "", max_len=6, default="")
@@ -59,7 +65,7 @@ class StockPicking(models.Model):
                 "volume": volume,
                 "description": self._clip(product.name, max_len=2000, default="GOODS"),
                 "hs_code": hs_code,
-                "marks1": self._clip(ml.lot_id.name or product.default_code or "", max_len=10, default=""),
+                "marks1": self._clip(lot.name or product.default_code or "", max_len=10, default=""),
                 "type_of_container": "20GP",
                 "empty_full": "LCL",
             }))
@@ -71,9 +77,8 @@ class StockPicking(models.Model):
             raise UserError(_("Please upload a manifest XML file first."))
 
         try:
-            import base64 as _b64
             from lxml import etree
-            xml_bytes = _b64.b64decode(file_data)
+            xml_bytes = base64.b64decode(file_data)
             root = etree.fromstring(xml_bytes)
         except Exception:
             raise UserError(_("Invalid XML file. Please upload a valid manifest XML."))

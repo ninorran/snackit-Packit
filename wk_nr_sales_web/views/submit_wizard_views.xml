@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="nr_submit_delivery_wizard_form_view" model="ir.ui.view">
+        <field name="name">nr.submit.delivery.wizard.form</field>
+        <field name="model">nr.submit.delivery.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Approve Delivery Request">
+                <group>
+                    <field name="supplier_id"/>
+                    <field name="consignee_id"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Approve" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

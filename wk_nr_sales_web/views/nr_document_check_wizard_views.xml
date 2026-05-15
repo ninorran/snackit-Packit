@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="nr_document_check_wizard_form_view" model="ir.ui.view">
+        <field name="name">nr.document.check.wizard.form</field>
+        <field name="model">nr.document.check.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Document Check">
+                <field name="has_purchase_invoice" invisible="1"/>
+                <field name="has_supplier_invoice" invisible="1"/>
+                <field name="has_shipping_documents" invisible="1"/>
+                <field name="can_create_picking" invisible="1"/>
+                <group>
+                    <field name="request_id" readonly="1"/>
+                </group>
+                <div class="o_group">
+                    <h6 class="o_horizontal_separator fw-bold">Document Status</h6>
+                    <table class="table table-sm table-bordered mb-3" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th style="width:40%">Document Type</th>
+                                    <th style="width:20%">Status</th>
+                                    <th style="width:40%">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong>Purchase Invoice</strong>
+                                        <span class="text-danger ms-1">*</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill bg-success"
+                                            invisible="not has_purchase_invoice">Present</span>
+                                        <span class="badge rounded-pill bg-danger"
+                                            invisible="has_purchase_invoice">Missing</span>
+                                    </td>
+                                    <td>
+                                        <button name="action_send_wa_purchase_invoice"
+                                            string="Send WhatsApp Request"
+                                            type="object"
+                                            class="btn btn-sm btn-secondary"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Supplier Invoice</td>
+                                    <td>
+                                        <span class="badge rounded-pill bg-success"
+                                            invisible="not has_supplier_invoice">Present</span>
+                                        <span class="badge rounded-pill bg-warning text-dark"
+                                            invisible="has_supplier_invoice">Missing</span>
+                                    </td>
+                                    <td>
+                                        <button name="action_send_wa_supplier_invoice"
+                                            string="Send WhatsApp Request"
+                                            type="object"
+                                            class="btn btn-sm btn-secondary"/>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Shipping Documents</td>
+                                    <td>
+                                        <span class="badge rounded-pill bg-success"
+                                            invisible="not has_shipping_documents">Present</span>
+                                        <span class="badge rounded-pill bg-warning text-dark"
+                                            invisible="has_shipping_documents">Missing</span>
+                                    </td>
+                                    <td>
+                                        <button name="action_send_wa_shipping_documents"
+                                            string="Send WhatsApp Request"
+                                            type="object"
+                                            class="btn btn-sm btn-secondary"/>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    <div class="alert alert-danger mb-0" role="alert" invisible="has_purchase_invoice">
+                        <i class="fa fa-exclamation-circle me-1"/>
+                        Purchase Invoice is required before creating a picking.
+                    </div>
+                </div>
+                <footer>
+                    <button name="action_create_picking"
+                        string="Create Picking"
+                        type="object"
+                        class="btn-primary"
+                        invisible="not can_create_picking"/>
+                    <span invisible="can_create_picking"
+                        class="text-danger me-2">
+                        <i class="fa fa-lock me-1"/>Attach Purchase Invoice to proceed
+                    </span>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

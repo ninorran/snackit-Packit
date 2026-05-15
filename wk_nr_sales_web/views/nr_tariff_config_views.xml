@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="nr_tariff_config_list_view" model="ir.ui.view">
+        <field name="name">nr.tariff.config.list</field>
+        <field name="model">nr.tariff.config</field>
+        <field name="arch" type="xml">
+            <list string="Tariff Configurations">
+                <field name="name"/>
+                <field name="duty_charge" string="Duty (%)"/>
+                <field name="csc_charge" string="CSC (%)"/>
+                <field name="vat_charge" string="VAT Charge (%)"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="nr_tariff_config_form_view" model="ir.ui.view">
+        <field name="name">nr.tariff.config.form</field>
+        <field name="model">nr.tariff.config</field>
+        <field name="arch" type="xml">
+            <form string="Tariff Configuration">
+                <sheet>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1><field name="name" placeholder="Tariff Name..."/></h1>
+                    </div>
+                    <group>
+                        <field name="duty_charge" string="Duty Charge (%)"/>
+                        <field name="csc_charge" string="CSC Charge (%)"/>
+                        <field name="vat_charge" string="VAT Charge (%)"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="nr_tariff_config_action" model="ir.actions.act_window">
+        <field name="name">Tariff Configurations</field>
+        <field name="res_model">nr.tariff.config</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="nr_sales_configuration_menu"
+        name="Configuration"
+        parent="nr_sales_root_menu"
+        sequence="90"/>
+
+    <menuitem id="nr_sales_tariff_config_menu"
+        name="Tariff Configurations"
+        parent="nr_sales_configuration_menu"
+        action="nr_tariff_config_action"
+        sequence="10"/>
+
+</odoo>

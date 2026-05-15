@@ -1,0 +1,14 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_nr_sales_partner,nr.sales.partner,base.model_res_partner,,1,1,1,1
+access_nr_delivery_request,nr.delivery.request,model_nr_delivery_request,,1,1,1,1
+access_nr_delivery_request_line,nr.delivery.request.line,model_nr_delivery_request_line,,1,1,1,1
+access_nr_sales_config,nr.sales.config,model_nr_sales_config,,1,1,1,1
+access_nr_grant_portal_wizard,nr.grant.portal.wizard,model_nr_grant_portal_wizard,,1,1,1,1
+access_nr_create_invoice_wizard,nr.create.invoice.wizard,model_nr_create_invoice_wizard,,1,1,1,1
+access_nr_parcel_received_wizard,nr.parcel.received.wizard,model_nr_parcel_received_wizard,,1,1,1,1
+access_nr_submit_delivery_wizard,nr.submit.delivery.wizard,model_nr_submit_delivery_wizard,,1,1,1,1
+access_nr_tariff_config,nr.tariff.config,model_nr_tariff_config,,1,1,1,1
+access_nr_sales_billing_wizard,nr.nr_sales_billing_wizard,model_nr_nr_sales_billing_wizard,,1,1,1,1
+access_nr_sales_billing_line,nr.nr_sales_billing_line,model_nr_nr_sales_billing_line,,1,1,1,1
+access_nr_whatsapp_event_config,nr.whatsapp.event.config,model_nr_whatsapp_event_config,,1,1,1,1
+access_nr_document_check_wizard,nr.document.check.wizard,model_nr_document_check_wizard,,1,1,1,1

@@ -23,13 +23,14 @@
     "license": "Other proprietary",
     "website": "https://store.webkul.com/",
     "description": """Generate ASYCUDA World Manifest XML (AWMDS) from stock pickings.""",
-    "depends": ["stock"],
+    "depends": ["stock", "stock_picking_batch"],
     "external_dependencies": {
         "python": ["lxml"],
     },
     "data": [
         "security/ir.model.access.csv",
         "views/stock_picking_views.xml",
+        "views/stock_picking_batch_views.xml",
         "views/manifest_import_wizard_views.xml",
     ],
     "application": True,

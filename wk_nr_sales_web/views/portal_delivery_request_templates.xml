@@ -1,0 +1,573 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Breadcrumbs -->
+    <template id="portal_breadcrumbs_delivery_requests" name="Portal Breadcrumbs: Delivery Requests"
+        inherit_id="portal.portal_breadcrumbs" priority="30">
+        <xpath expr="//ol" position="inside">
+            <li t-elif="page_name == 'delivery_requests'"
+                class="breadcrumb-item active">Delivery Requests</li>
+            <li t-elif="page_name == 'delivery_request_detail'" class="breadcrumb-item">
+                <a href="/my/delivery-requests">Delivery Requests</a>
+            </li>
+            <li t-elif="page_name == 'delivery_request_new'" class="breadcrumb-item">
+                <a href="/my/delivery-requests">Delivery Requests</a>
+            </li>
+            <li t-if="page_name == 'delivery_request_detail'" class="breadcrumb-item active">
+                <t t-out="delivery_request.name if delivery_request else ''"/>
+            </li>
+            <li t-if="page_name == 'delivery_request_new'" class="breadcrumb-item active">
+                New Request
+            </li>
+        </xpath>
+    </template>
+
+    <!-- Portal home counter -->
+    <template id="portal_my_home_delivery_requests" name="Portal: Delivery Requests count"
+        inherit_id="portal.portal_my_home" customize_show="True" priority="30">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-set="portal_client_category_enable" t-value="True"/>
+        </xpath>
+        <div id="portal_client_category" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="icon" t-value="'/sale/static/src/img/bag.svg'"/>
+                <t t-set="title">Delivery Requests</t>
+                <t t-set="url" t-value="'/my/delivery-requests'"/>
+                <t t-set="text">Track and manage your delivery requests</t>
+                <t t-set="placeholder_count" t-value="'delivery_request_count'"/>
+                <t t-set="config_card" t-value="True"/>
+            </t>
+        </div>
+    </template>
+
+    <!-- List page -->
+    <template id="portal_delivery_request_list" name="My Delivery Requests">
+        <t t-call="portal.portal_layout">
+            <t t-set="breadcrumbs_searchable" t-value="True"/>
+            <t t-call="portal.portal_searchbar">
+                <t t-set="title">Delivery Requests</t>
+            </t>
+
+            <t t-if="not delivery_requests">
+                <div class="alert alert-info mt-3">
+                    You have no delivery requests yet.
+                    <a href="/my/delivery-requests/new" class="alert-link">Create one now.</a>
+                </div>
+            </t>
+            <t t-else="">
+                <div class="d-flex justify-content-end mb-3">
+                    <a href="/my/delivery-requests/new" class="btn btn-primary btn-sm">
+                        <i class="fa fa-plus me-1"/> New Request
+                    </a>
+                </div>
+                <div class="card">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Reference</th>
+                                <th>Items</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th/>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="delivery_requests" t-as="dr">
+                                <td>
+                                    <a t-att-href="dr.get_portal_url()">
+                                        <t t-out="dr.name"/>
+                                    </a>
+                                </td>
+                                <td><t t-out="len(dr.line_ids)"/></td>
+                                <td><t t-out="dr.create_date.strftime('%d %b %Y')"/></td>
+                                <td>
+                                    <span t-att-class="'badge rounded-pill ' + ('bg-secondary' if dr.state in ('draft', 'cancelled') else 'bg-warning text-dark' if dr.state in ('approved', 'awaiting_parcel', 'parcel_received', 'on_hold') else 'bg-info text-dark' if dr.state in ('in_transit', 'in_custom_clearance', 'passed_custom_clearance') else 'bg-danger' if dr.state in ('failed_custom_clearance', 'delivery_failed') else 'bg-success')">
+                                        <t t-out="dict(dr._fields['state'].selection).get(dr.state, dr.state)"/>
+                                    </span>
+                                </td>
+                                <td>
+                                    <a t-att-href="dr.get_portal_url()" class="btn btn-sm btn-outline-primary">View</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div t-if="pager" class="mt-3 d-flex justify-content-center">
+                    <t t-call="portal.pager"/>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- Detail page -->
+    <template id="portal_delivery_request_detail" name="Delivery Request Detail">
+        <t t-call="portal.portal_layout">
+            <style>
+                .doc-card {
+                    background: #fff;
+                    border: 1px solid #dee2e6;
+                    border-radius: 6px;
+                    overflow: hidden;
+                    transition: box-shadow .15s, border-color .15s;
+                    cursor: pointer;
+                }
+                .doc-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,.12); border-color: #adb5bd; }
+                .doc-card-preview {
+                    height: 160px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
+                    background: #f8f9fa;
+                }
+                .doc-card-preview img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
+                .doc-icon-pdf     { color: #dc3545; }
+                .doc-icon-img     { color: #198754; }
+                .doc-icon-default { color: #0d6efd; }
+                .doc-card-footer {
+                    padding: 8px 10px 6px;
+                    border-top: 1px solid #f0f0f0;
+                }
+                .doc-card-name {
+                    font-size: .8rem;
+                    font-weight: 500;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    color: #212529;
+                }
+                .doc-card-meta { font-size: .7rem; color: #6c757d; margin-top: 2px; }
+                .doc-delete-row .doc-card.marked { opacity: .35; }
+                .doc-delete-btn {
+                    position: absolute;
+                    top: 6px;
+                    right: 6px;
+                    z-index: 2;
+                    padding: 3px 7px;
+                    font-size: .7rem;
+                    line-height: 1;
+                }
+            </style>
+            <t t-set="o_portal_fullwidth_alert" groups="base.group_user">
+                <t t-call="portal.portal_back_in_edit_mode">
+                    <t t-set="backend_url"
+                        t-value="'/odoo/action-wk_nr_sales_web.nr_delivery_request_action/%s' % delivery_request.id"/>
+                </t>
+            </t>
+
+            <div class="card mt-3">
+                <!-- Header -->
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><t t-out="delivery_request.name"/></h4>
+                    <div class="d-flex align-items-center gap-2">
+                        <span t-att-class="'badge rounded-pill fs-6 ' + ('bg-secondary' if delivery_request.state in ('draft', 'cancelled') else 'bg-warning text-dark' if delivery_request.state in ('approved', 'awaiting_parcel', 'parcel_received', 'on_hold') else 'bg-info text-dark' if delivery_request.state in ('in_transit', 'in_custom_clearance', 'passed_custom_clearance') else 'bg-danger' if delivery_request.state in ('failed_custom_clearance', 'delivery_failed') else 'bg-success')">
+                            <t t-out="dict(delivery_request._fields['state'].selection).get(delivery_request.state, delivery_request.state)"/>
+                        </span>
+                        <t t-if="delivery_request.active_picking_count == 0 and delivery_request.state not in ('cancelled', 'delivered', 'package_returned')">
+                            <button type="button" id="btn_edit_request" class="btn btn-sm btn-outline-primary">
+                                <i class="fa fa-pencil me-1"/> Edit
+                            </button>
+                        </t>
+                    </div>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- READ-ONLY view (shown by default) -->
+                    <div id="section_readonly">
+                        <div class="row mb-4">
+                            <div class="col-sm-6">
+                                <strong>Customer</strong><br/>
+                                <t t-out="delivery_request.partner_id.name"/>
+                            </div>
+                            <div class="col-sm-6">
+                                <strong>Date</strong><br/>
+                                <t t-out="delivery_request.create_date.strftime('%d %B %Y')"/>
+                            </div>
+                        </div>
+
+                        <h5>Items</h5>
+                        <table class="table table-bordered mb-4">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item Name</th>
+                                    <th>Description</th>
+                                    <th class="text-end" style="width:90px;">Qty.</th>
+                                    <th>Additional Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr t-foreach="delivery_request.line_ids" t-as="line">
+                                    <td><t t-out="line.name"/></td>
+                                    <td><t t-out="line.description or ''"/></td>
+                                    <td class="text-end"><t t-out="int(line.quantity) if line.quantity == int(line.quantity) else line.quantity"/></td>
+                                    <td><t t-out="line.notes or ''"/></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <t t-call="wk_nr_sales_web.portal_delivery_request_documents_readonly"/>
+
+                        <t t-if="delivery_request.invoice_ids">
+                            <h5 class="mt-4">Invoices</h5>
+                            <ul class="list-unstyled mb-0">
+                                <li t-foreach="delivery_request.invoice_ids" t-as="inv" class="mb-1">
+                                    <a t-att-href="inv.get_portal_url()" class="text-decoration-none">
+                                        <i class="fa fa-file-text-o me-1"/>
+                                        <t t-out="inv.name"/>
+                                        <span class="text-muted ms-2 small">
+                                            (<t t-out="inv.amount_total"/> <t t-out="inv.currency_id.name"/>)
+                                        </span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </t>
+                    </div>
+
+                    <!-- EDITABLE form (hidden by default, shown on Edit click) -->
+                    <t t-if="delivery_request.active_picking_count == 0 and delivery_request.state not in ('cancelled', 'delivered', 'package_returned')">
+                        <div id="section_edit" style="display:none;">
+
+                            <t t-if="errors">
+                                <div class="alert alert-danger">
+                                    <ul class="mb-0">
+                                        <t t-foreach="errors.values()" t-as="msg">
+                                            <li><t t-out="msg"/></li>
+                                        </t>
+                                    </ul>
+                                </div>
+                            </t>
+
+                            <form t-attf-action="/my/delivery-requests/#{delivery_request.id}/update"
+                                method="post" enctype="multipart/form-data">
+                                <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                                <t t-if="delivery_request.state == 'draft'">
+                                <h5 class="mb-2">Items <span class="text-danger">*</span></h5>
+                                <table class="table table-bordered mb-2" id="items_table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Item Name <span class="text-danger">*</span></th>
+                                            <th>Description</th>
+                                            <th style="width:100px;">Quantity</th>
+                                            <th>Additional Notes</th>
+                                            <th style="width:48px;"/>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="items_tbody">
+                                        <t t-if="delivery_request.line_ids">
+                                            <tr t-foreach="delivery_request.line_ids" t-as="line" class="item-row">
+                                                <td><input type="text" class="form-control form-control-sm" name="item_name" t-att-value="line.name" required="required"/></td>
+                                                <td><input type="text" class="form-control form-control-sm" name="item_description" t-att-value="line.description or ''"/></td>
+                                                <td><input type="number" class="form-control form-control-sm" name="item_quantity" t-att-value="int(line.quantity) if line.quantity == int(line.quantity) else line.quantity" min="1" step="1"/></td>
+                                                <td><input type="text" class="form-control form-control-sm" name="item_notes" t-att-value="line.notes or ''"/></td>
+                                                <td class="text-center align-middle">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-row" title="Remove">
+                                                        <i class="fa fa-trash"/>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                        <t t-else="">
+                                            <tr class="item-row">
+                                                <td><input type="text" class="form-control form-control-sm" name="item_name" placeholder="e.g. Running Shoes" required="required"/></td>
+                                                <td><input type="text" class="form-control form-control-sm" name="item_description" placeholder="Optional"/></td>
+                                                <td><input type="number" class="form-control form-control-sm" name="item_quantity" value="1" min="1" step="1"/></td>
+                                                <td><input type="text" class="form-control form-control-sm" name="item_notes" placeholder="Optional notes"/></td>
+                                                <td class="text-center align-middle">
+                                                    <button type="button" class="btn btn-sm btn-outline-danger remove-row" title="Remove">
+                                                        <i class="fa fa-trash"/>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+                                <button type="button" id="add_item_row" class="btn btn-sm btn-outline-secondary mb-4">
+                                    <i class="fa fa-plus me-1"/> Add Item
+                                </button>
+                                </t>
+
+                                <!-- Existing documents with delete option + new uploads -->
+                                <h5 class="mb-3">Documents</h5>
+                                <t t-foreach="[('supplier_invoice_ids', 'Supplier Invoice', 'supplier_invoice'), ('purchase_invoice_ids', 'Purchase Invoice', 'purchase_invoice'), ('shipping_document_ids', 'Shipping Documents', 'shipping_document')]" t-as="doc_info">
+                                    <div class="mb-4">
+                                        <div class="small text-uppercase fw-semibold text-muted mb-2" style="letter-spacing:.05em;">
+                                            <t t-out="doc_info[1]"/>
+                                        </div>
+                                        <t t-if="delivery_request[doc_info[0]]">
+                                            <div class="row g-3 mb-2">
+                                                <t t-foreach="delivery_request[doc_info[0]]" t-as="doc">
+                                                    <div class="col-6 col-sm-4 col-md-3 doc-delete-row" style="position:relative;">
+                                                        <input type="checkbox" t-attf-name="delete_doc_#{doc_info[2]}" t-att-value="doc.id"
+                                                            class="doc-delete-checkbox d-none"/>
+                                                        <div class="doc-card doc-delete-name">
+                                                            <div class="doc-card-preview">
+                                                                <t t-if="doc.mimetype and doc.mimetype.startswith('image/')">
+                                                                    <img t-attf-src="/web/image/ir.attachment/#{doc.id}/datas" alt=""/>
+                                                                </t>
+                                                                <t t-else="">
+                                                                    <i t-att-class="'fa fa-4x ' + ('fa-file-pdf-o doc-icon-pdf' if doc.mimetype == 'application/pdf' else 'fa-file-o doc-icon-default')"/>
+                                                                </t>
+                                                            </div>
+                                                            <div class="doc-card-footer">
+                                                                <div class="doc-card-name" t-att-title="doc.name">
+                                                                    <t t-out="doc.name"/>
+                                                                </div>
+                                                                <div class="doc-card-meta">
+                                                                    <t t-if="doc.file_size">
+                                                                        <t t-out="'%.1f KB' % (doc.file_size / 1024.0) if doc.file_size &lt; 1048576 else '%.1f MB' % (doc.file_size / 1048576.0)"/>
+                                                                    </t>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <button type="button"
+                                                            class="btn btn-danger btn-sm btn-doc-delete doc-delete-btn"
+                                                            title="Mark for deletion">
+                                                            <i class="fa fa-trash"/>
+                                                        </button>
+                                                    </div>
+                                                </t>
+                                            </div>
+                                        </t>
+                                        <label class="form-label small text-muted">Upload new files</label>
+                                        <input t-att-type="'file'" class="form-control form-control-sm" t-att-name="doc_info[2]" multiple="multiple" accept=".pdf,.jpg,.jpeg,.png"/>
+                                    </div>
+                                </t>
+
+                                <div class="d-flex gap-2 mt-3">
+                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                    <button type="button" id="btn_cancel_edit" class="btn btn-outline-secondary">Cancel</button>
+                                </div>
+                            </form>
+                        </div>
+                    </t>
+
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                (function () {
+                    var btnEdit   = document.getElementById('btn_edit_request');
+                    var btnCancel = document.getElementById('btn_cancel_edit');
+                    var secRO     = document.getElementById('section_readonly');
+                    var secEdit   = document.getElementById('section_edit');
+
+                    function showEdit() {
+                        if (secRO)   secRO.style.display   = 'none';
+                        if (secEdit) secEdit.style.display  = '';
+                        if (btnEdit) btnEdit.style.display  = 'none';
+                    }
+                    function showReadonly() {
+                        if (secRO)   secRO.style.display   = '';
+                        if (secEdit) secEdit.style.display  = 'none';
+                        if (btnEdit) btnEdit.style.display  = '';
+                    }
+
+                    if (btnEdit)   btnEdit.addEventListener('click',   showEdit);
+                    if (btnCancel) btnCancel.addEventListener('click', showReadonly);
+
+                    // If the server returned validation errors, stay in edit mode
+                    var hasErrors = !!document.querySelector('#section_edit .alert-danger');
+                    if (hasErrors) showEdit();
+
+                    // Document card mark-for-deletion toggle
+                    document.querySelectorAll('.btn-doc-delete').forEach(function (btn) {
+                        btn.addEventListener('click', function () {
+                            var row  = btn.closest('.doc-delete-row');
+                            var cb   = row.querySelector('.doc-delete-checkbox');
+                            var card = row.querySelector('.doc-card');
+                            cb.checked = !cb.checked;
+                            if (cb.checked) {
+                                if (card) card.classList.add('marked');
+                                btn.title = 'Undo';
+                                btn.innerHTML = '<i class="fa fa-undo"/>';
+                            } else {
+                                if (card) card.classList.remove('marked');
+                                btn.title = 'Mark for deletion';
+                                btn.innerHTML = '<i class="fa fa-trash"/>';
+                            }
+                        });
+                    });
+
+                    // Items table: add / remove rows
+                    var tbody = document.getElementById('items_tbody');
+                    if (tbody) {
+                        function newRow() {
+                            var first = tbody.querySelector('tr.item-row');
+                            var row = first.cloneNode(true);
+                            row.querySelectorAll('input[type=text], input[type=number]').forEach(function (i) { i.value = i.defaultValue; });
+                            return row;
+                        }
+                        var addBtn = document.getElementById('add_item_row');
+                        if (addBtn) addBtn.addEventListener('click', function () { tbody.appendChild(newRow()); });
+                        tbody.addEventListener('click', function (e) {
+                            var btn = e.target.closest('.remove-row');
+                            if (!btn) return;
+                            var rows = tbody.querySelectorAll('tr.item-row');
+                            if (rows.length > 1) btn.closest('tr').remove();
+                        });
+                    }
+                })();
+            </script>
+
+        </t>
+    </template>
+
+    <!-- Reusable read-only documents block -->
+    <template id="portal_delivery_request_documents_readonly" name="Delivery Request Documents (Read-only)">
+        <h5>Documents</h5>
+        <t t-set="any_docs" t-value="delivery_request.supplier_invoice_ids or delivery_request.purchase_invoice_ids or delivery_request.shipping_document_ids"/>
+        <t t-if="not any_docs">
+            <p class="text-muted small mt-2">No documents uploaded.</p>
+        </t>
+        <t t-foreach="[('supplier_invoice_ids', 'Supplier Invoice'), ('purchase_invoice_ids', 'Purchase Invoice'), ('shipping_document_ids', 'Shipping Documents')]" t-as="doc_info">
+            <t t-if="delivery_request[doc_info[0]]">
+                <h6 class="text-muted mt-3 mb-2 small text-uppercase fw-semibold" style="letter-spacing:.05em;">
+                    <t t-out="doc_info[1]"/>
+                </h6>
+                <div class="row g-3">
+                    <t t-foreach="delivery_request[doc_info[0]]" t-as="doc">
+                        <div class="col-6 col-sm-4 col-md-3">
+                            <a t-attf-href="/web/content/#{doc.id}?download=false"
+                                target="_blank" class="text-decoration-none d-block">
+                                <div class="doc-card">
+                                    <div class="doc-card-preview">
+                                        <t t-if="doc.mimetype and doc.mimetype.startswith('image/')">
+                                            <img t-attf-src="/web/image/ir.attachment/#{doc.id}/datas" alt=""/>
+                                        </t>
+                                        <t t-else="">
+                                            <i t-att-class="'fa fa-4x ' + ('fa-file-pdf-o doc-icon-pdf' if doc.mimetype == 'application/pdf' else 'fa-file-o doc-icon-default')"/>
+                                        </t>
+                                    </div>
+                                    <div class="doc-card-footer">
+                                        <div class="doc-card-name" t-att-title="doc.name">
+                                            <t t-out="doc.name"/>
+                                        </div>
+                                        <div class="doc-card-meta">
+                                            <t t-if="doc.file_size">
+                                                <t t-out="'%.1f KB' % (doc.file_size / 1024.0) if doc.file_size &lt; 1048576 else '%.1f MB' % (doc.file_size / 1048576.0)"/>
+                                                &#160;·&#160;
+                                            </t>
+                                            <t t-out="doc.create_date.strftime('%d %b %Y')"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </t>
+    </template>
+
+    <!-- Create form -->
+    <template id="portal_delivery_request_form" name="New Delivery Request">
+        <t t-call="portal.portal_layout">
+
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h4 class="mb-0">New Delivery Request</h4>
+                </div>
+                <div class="card-body">
+
+                    <t t-if="errors">
+                        <div class="alert alert-danger">
+                            <ul class="mb-0">
+                                <t t-foreach="errors.values()" t-as="msg">
+                                    <li><t t-out="msg"/></li>
+                                </t>
+                            </ul>
+                        </div>
+                    </t>
+
+                    <form action="/my/delivery-requests/submit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                        <!-- Items -->
+                        <h5 class="mb-2">Items <span class="text-danger">*</span></h5>
+                        <table class="table table-bordered mb-2" id="items_table">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item Name <span class="text-danger">*</span></th>
+                                    <th>Description</th>
+                                    <th style="width:100px;">Quantity</th>
+                                    <th>Additional Notes</th>
+                                    <th style="width:48px;"/>
+                                </tr>
+                            </thead>
+                            <tbody id="items_tbody">
+                                <tr class="item-row">
+                                    <td><input type="text" class="form-control form-control-sm" name="item_name" placeholder="e.g. Running Shoes" required="required"/></td>
+                                    <td><input type="text" class="form-control form-control-sm" name="item_description" placeholder="Optional"/></td>
+                                    <td><input type="number" class="form-control form-control-sm" name="item_quantity" value="1" min="1" step="1"/></td>
+                                    <td><input type="text" class="form-control form-control-sm" name="item_notes" placeholder="Optional notes"/></td>
+                                    <td class="text-center align-middle">
+                                        <button type="button" class="btn btn-sm btn-outline-danger remove-row" title="Remove">
+                                            <i class="fa fa-trash"/>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" id="add_item_row" class="btn btn-sm btn-outline-secondary mb-4">
+                            <i class="fa fa-plus me-1"/> Add Item
+                        </button>
+
+                        <!-- Document uploads -->
+                        <h5 class="mb-3">Documents</h5>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Supplier Invoice</label>
+                                <input type="file" class="form-control" name="supplier_invoice" multiple="multiple" accept=".pdf,.jpg,.jpeg,.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Purchase Invoice</label>
+                                <input type="file" class="form-control" name="purchase_invoice" multiple="multiple" accept=".pdf,.jpg,.jpeg,.png"/>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Shipping Documents</label>
+                                <input type="file" class="form-control" name="shipping_document" multiple="multiple" accept=".pdf,.jpg,.jpeg,.png"/>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Submit Request</button>
+                            <a href="/my/delivery-requests" class="btn btn-outline-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                (function () {
+                    var tbody = document.getElementById('items_tbody');
+
+                    function newRow() {
+                        var first = tbody.querySelector('tr.item-row');
+                        var row = first.cloneNode(true);
+                        row.querySelectorAll('input').forEach(function (i) { i.value = i.defaultValue; });
+                        return row;
+                    }
+
+                    document.getElementById('add_item_row').addEventListener('click', function () {
+                        tbody.appendChild(newRow());
+                    });
+
+                    tbody.addEventListener('click', function (e) {
+                        var btn = e.target.closest('.remove-row');
+                        if (!btn) return;
+                        var rows = tbody.querySelectorAll('tr.item-row');
+                        if (rows.length > 1) btn.closest('tr').remove();
+                    });
+                })();
+            </script>
+
+        </t>
+    </template>
+
+</odoo>

@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="nr_sales_portal_invite_email" model="mail.template">
+        <field name="name">NR Sales: Portal User Invite</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="subject">Your account at {{ object.company_id.name }}</field>
+        <field name="email_from">{{ (object.company_id.email_formatted or user.email_formatted) }}</field>
+        <field name="email_to">{{ object.email_formatted }}</field>
+        <field name="lang">{{ object.lang }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="description">Sent to new NR Sales portal users after being invited</field>
+        <field name="body_html" type="html">
+<table border="0" cellpadding="0" cellspacing="0"
+    style="padding: 24px 0; background-color: #EFEFEF; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #3d3d3d; width: 100%; border-collapse: separate;">
+    <tr><td align="center">
+        <table border="0" cellpadding="0" cellspacing="0" width="600"
+            style="background-color: #ffffff; border-radius: 8px; overflow: hidden; border-collapse: separate; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+            <tbody>
+
+                <!-- HEADER BANNER -->
+                <tr>
+                    <td align="center"
+                        t-attf-style="background-color: {{object.company_id.email_secondary_color or '#5B2D8E'}}; padding: 28px 24px;">
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                            <tr>
+                                <td valign="middle">
+                                    <span style="font-size: 11px; color: rgba(255,255,255,0.75); letter-spacing: 1px; text-transform: uppercase;">Customer Portal</span><br/>
+                                    <span style="font-size: 22px; font-weight: 700; color: #ffffff;" t-out="object.name or ''">Customer Name</span>
+                                </td>
+                                <td valign="middle" align="right" t-if="not object.company_id.uses_default_logo">
+                                    <img t-attf-src="/logo.png?company={{ object.company_id.id }}"
+                                        style="height: auto; width: 90px; border-radius: 4px;"
+                                        t-att-alt="object.company_id.name"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+
+                <!-- BODY -->
+                <tr>
+                    <td style="padding: 32px 32px 8px 32px; font-size: 14px; line-height: 1.7; color: #3d3d3d;">
+                        <p style="margin: 0 0 16px 0;">
+                            Dear <strong><t t-out="object.name or ''">Customer</t></strong>,
+                        </p>
+                        <p style="margin: 0 0 16px 0;">
+                            Welcome to <strong><t t-out="object.company_id.name">NR Sales</t></strong>! Your customer portal account has been created.
+                            You can use it to track your orders and manage your profile.
+                        </p>
+                        <p style="margin: 0 0 4px 0;">
+                            Your login: <strong><t t-out="object.login">email@example.com</t></strong>
+                        </p>
+                        <t t-if="ctx.get('nr_sales_uid')">
+                            <p style="margin: 8px 0 4px 0;">
+                                Your Customer ID: <strong><t t-out="ctx.get('nr_sales_uid')"/></strong>
+                            </p>
+                        </t>
+                        <t t-if="ctx.get('welcome_message')">
+                            <p style="margin: 16px 0 0 0; color: #555555; font-style: italic;">
+                                <t t-out="ctx.get('welcome_message')"/>
+                            </p>
+                        </t>
+                    </td>
+                </tr>
+
+                <!-- DELIVERY ADDRESS NOTICE -->
+                <t t-if="ctx.get('delivery_address')">
+                <tr>
+                    <td style="padding: 0 32px 24px 32px;">
+                        <table border="0" cellpadding="0" cellspacing="0" width="100%"
+                            style="background-color: #f5f0fb; border-left: 4px solid #5B2D8E; border-radius: 4px;">
+                            <tr>
+                                <td style="padding: 16px 20px; font-size: 13px; line-height: 1.6; color: #3d3d3d;">
+                                    <span style="font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #5B2D8E;">
+                                        Your Delivery Address
+                                    </span><br/><br/>
+                                    After your account is activated, please use the delivery address below when placing orders:<br/><br/>
+                                    <strong t-out="ctx['delivery_address'].name or ''"/><br/>
+                                    <t t-if="ctx['delivery_address'].street"><t t-out="ctx['delivery_address'].street"/><br/></t>
+                                    <t t-if="ctx['delivery_address'].street2"><t t-out="ctx['delivery_address'].street2"/><br/></t>
+                                    <t t-if="ctx['delivery_address'].city"><t t-out="ctx['delivery_address'].city"/>, </t>
+                                    <t t-if="ctx['delivery_address'].state_id"><t t-out="ctx['delivery_address'].state_id.name"/> </t>
+                                    <t t-if="ctx['delivery_address'].zip"><t t-out="ctx['delivery_address'].zip"/><br/></t>
+                                    <t t-if="ctx['delivery_address'].country_id"><t t-out="ctx['delivery_address'].country_id.name"/></t>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                </t>
+
+                <!-- CTA BUTTON -->
+                <tr>
+                    <td align="center" style="padding: 0 32px 32px 32px;">
+                        <a t-att-href="object.partner_id._get_signup_url()"
+                            t-attf-style="display: inline-block; padding: 13px 32px; text-decoration: none; font-size: 14px; font-weight: 600; background-color: {{object.company_id.email_secondary_color or '#5B2D8E'}}; color: {{object.company_id.email_primary_color or '#ffffff'}}; border-radius: 6px; letter-spacing: 0.3px;">
+                            Activate My Account
+                        </a>
+                    </td>
+                </tr>
+
+                <!-- DIVIDER -->
+                <tr>
+                    <td style="padding: 0 32px;">
+                        <hr style="border: none; border-top: 1px solid #e8e8e8; margin: 0;"/>
+                    </td>
+                </tr>
+
+                <!-- FOOTER -->
+                <tr>
+                    <td style="padding: 20px 32px; font-size: 12px; color: #888888;">
+                        <strong style="color: #3d3d3d; font-size: 13px;">
+                            <t t-out="object.company_id.name or ''">YourCompany</t>
+                        </strong><br/>
+                        <t t-out="object.company_id.phone or ''"/>
+                        <t t-if="object.company_id.email">
+                            &amp;nbsp;·&amp;nbsp;
+                            <a t-attf-href="mailto:{{ object.company_id.email }}"
+                                style="color: #888888; text-decoration: none;"
+                                t-out="object.company_id.email or ''"/>
+                        </t>
+                        <t t-if="object.company_id.website">
+                            &amp;nbsp;·&amp;nbsp;
+                            <a t-att-href="object.company_id.website"
+                                style="color: #888888; text-decoration: none;"
+                                t-out="object.company_id.website or ''"/>
+                        </t>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    </td></tr>
+</table>
+        </field>
+    </record>
+
+</odoo>

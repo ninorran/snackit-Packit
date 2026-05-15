@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="nr_sales_config_list_view" model="ir.ui.view">
+        <field name="name">nr.sales.config.list</field>
+        <field name="model">nr.sales.config</field>
+        <field name="arch" type="xml">
+            <list string="NR Sales Configurations"
+                decoration-success="enable == True"
+                decoration-muted="enable == False"
+                >
+                <field name="name"/>
+                <field name="delivery_product_id"/>
+                <field name="enable" widget="boolean_toggle"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="nr_sales_config_form_view" model="ir.ui.view">
+        <field name="name">nr.sales.config.form</field>
+        <field name="model">nr.sales.config</field>
+        <field name="arch" type="xml">
+            <form string="NR Sales Configuration">
+                <sheet>
+                    <widget name="web_ribbon" title="Inactive" bg_color="text-bg-danger"
+                        invisible="enable"/>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" placeholder="Configuration Name"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group string="General">
+                            <field name="enable" widget="boolean_toggle"/>
+                            <field name="delivery_product_id" options="{'no_create': True}"/>
+                            <field name="delivery_address_ids" widget="many2many_tags"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="WhatsApp Notifications">
+                            <field name="whatsapp_event_ids">
+                                <list editable="bottom">
+                                    <field name="event"/>
+                                    <field name="wa_template_id"/>
+                                    <field name="enable"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="nr_sales_config_action" model="ir.actions.act_window">
+        <field name="name">Configuration</field>
+        <field name="res_model">nr.sales.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="target">current</field>
+        <field name="context">{}</field>
+        <field name="view_id" ref="nr_sales_config_list_view"/>
+    </record>
+
+    <menuitem id="nr_sales_config_menu"
+        name="NR Sales Configuration"
+        parent="nr_sales_configuration_menu"
+        action="nr_sales_config_action"
+        sequence="20"/>
+
+</odoo>

@@ -1,11 +1,4 @@
 # -*- coding: utf-8 -*-
-#################################################################################
-#
-#   Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>)
-#   See LICENSE file for full copyright and licensing details.
-#   License URL : <https://store.webkul.com/license.html/>
-#
-#################################################################################
 from odoo import _, fields, models
 from odoo.exceptions import UserError
 
@@ -20,12 +13,13 @@ class ManifestImportWizard(models.TransientModel):
     def action_import(self):
         self.ensure_one()
         active_id = self.env.context.get("active_id")
+        active_model = self.env.context.get("active_model", "stock.picking")
         if not active_id:
-            raise UserError(_("No picking found in context."))
+            raise UserError(_("No record found in context."))
 
-        picking = self.env["stock.picking"].browse(active_id)
-        if not picking.exists():
-            raise UserError(_("The selected picking no longer exists."))
+        record = self.env[active_model].browse(active_id)
+        if not record.exists():
+            raise UserError(_("The selected record no longer exists."))
 
-        picking.action_import_manifest_xml_data(self.file_data)
+        record.action_import_manifest_xml_data(self.file_data)
         return {"type": "ir.actions.act_window_close"}
