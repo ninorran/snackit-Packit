@@ -149,7 +149,7 @@
                                                 <div class="d-flex flex-column h-100">
                                                     <div class="o_kanban_image_wrapper d-flex align-items-center justify-content-center bg-light border-bottom" style="height:90px;">
                                                         <t t-if="record.mimetype.raw_value and record.mimetype.raw_value.startsWith('image/')">
-                                                            <img t-attf-src="/web/image/ir.attachment/#{record.id.raw_value}/datas" style="max-height:88px;max-width:100%;object-fit:contain;" alt=""/>
+                                                            <img t-attf-src="/web/image/ir.attachment/#{record.id.raw_value}/datas" style="max-height:88px;max-width:100%;object-fit:contain;" t-att-alt="record.name.raw_value"/>
                                                         </t>
                                                         <t t-elif="record.mimetype.raw_value === 'application/pdf'">
                                                             <i class="fa fa-file-pdf-o fa-3x text-danger" aria-label="PDF file"/>
@@ -196,7 +196,7 @@
                                                 <div class="d-flex flex-column h-100">
                                                     <div class="o_kanban_image_wrapper d-flex align-items-center justify-content-center bg-light border-bottom" style="height:90px;">
                                                         <t t-if="record.mimetype.raw_value and record.mimetype.raw_value.startsWith('image/')">
-                                                            <img t-attf-src="/web/image/ir.attachment/#{record.id.raw_value}/datas" style="max-height:88px;max-width:100%;object-fit:contain;" alt=""/>
+                                                            <img t-attf-src="/web/image/ir.attachment/#{record.id.raw_value}/datas" style="max-height:88px;max-width:100%;object-fit:contain;" t-att-alt="record.name.raw_value"/>
                                                         </t>
                                                         <t t-elif="record.mimetype.raw_value === 'application/pdf'">
                                                             <i class="fa fa-file-pdf-o fa-3x text-danger" aria-label="PDF file"/>
@@ -243,7 +243,7 @@
                                                 <div class="d-flex flex-column h-100">
                                                     <div class="o_kanban_image_wrapper d-flex align-items-center justify-content-center bg-light border-bottom" style="height:90px;">
                                                         <t t-if="record.mimetype.raw_value and record.mimetype.raw_value.startsWith('image/')">
-                                                            <img t-attf-src="/web/image/ir.attachment/#{record.id.raw_value}/datas" style="max-height:88px;max-width:100%;object-fit:contain;" alt=""/>
+                                                            <img t-attf-src="/web/image/ir.attachment/#{record.id.raw_value}/datas" style="max-height:88px;max-width:100%;object-fit:contain;" t-att-alt="record.name.raw_value"/>
                                                         </t>
                                                         <t t-elif="record.mimetype.raw_value === 'application/pdf'">
                                                             <i class="fa fa-file-pdf-o fa-3x text-danger" aria-label="PDF file"/>

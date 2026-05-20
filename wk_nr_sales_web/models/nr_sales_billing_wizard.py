@@ -40,8 +40,21 @@ class NrSalesBillingWizard(models.TransientModel):
         self.ensure_one()
         invoice_line_vals = []
         for line in self.line_ids:
+            parts = [line.item_name]
+            for label, amount in [
+                ('Declared Value',   line.declared_value),
+                ('Duty Charge',      line.duty_charge),
+                ('CSC Charge',       line.csc_charge),
+                ('VAT Charge',       line.vat_charge),
+                ('Shipping Charge',  line.shipping_charge),
+                ('Insurance Charge', line.insurance_charge),
+                ('Delivery Charge',  line.delivery_charge),
+            ]:
+                if amount:
+                    parts.append(f'  {label}: {amount:.2f}')
+
             invoice_line_vals.append((0, 0, {
-                'name': line.item_name,
+                'name': '\n'.join(parts),
                 'quantity': line.quantity,
                 'price_unit': line.total,
             }))
