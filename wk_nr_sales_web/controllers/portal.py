@@ -79,9 +79,17 @@ class NrSalesPortal(CustomerPortal):
         except (AccessError, MissingError):
             return request.redirect('/my/delivery-requests')
 
+        all_docs = (
+            record_sudo.supplier_invoice_ids
+            + record_sudo.purchase_invoice_ids
+            + record_sudo.shipping_document_ids
+        )
+        all_docs.sudo().generate_access_token()
+
         values = {
             'delivery_request': record_sudo,
             'page_name': 'delivery_request_detail',
+            'attachment_tokens': {doc.id: doc.sudo().access_token for doc in all_docs},
         }
         values.update(self._get_page_view_values(
             record_sudo, access_token, values,

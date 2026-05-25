@@ -341,7 +341,7 @@
                                                         <div class="doc-card doc-delete-name">
                                                             <div class="doc-card-preview">
                                                                 <t t-if="doc.mimetype and doc.mimetype.startswith('image/')">
-                                                                    <img t-attf-src="/web/image/ir.attachment/#{doc.id}/datas" alt=""/>
+                                                                    <img t-attf-src="/web/image/ir.attachment/#{doc.id}/datas?access_token=#{attachment_tokens.get(doc.id, '')}" alt=""/>
                                                                 </t>
                                                                 <t t-else="">
                                                                     <i t-att-class="'fa fa-4x ' + ('fa-file-pdf-o doc-icon-pdf' if doc.mimetype == 'application/pdf' else 'fa-file-o doc-icon-default')"/>
@@ -466,12 +466,12 @@
                 <div class="row g-3">
                     <t t-foreach="delivery_request[doc_info[0]]" t-as="doc">
                         <div class="col-6 col-sm-4 col-md-3">
-                            <a t-attf-href="/web/content/#{doc.id}?download=false"
+                            <a t-attf-href="/web/content/#{doc.id}?access_token=#{attachment_tokens.get(doc.id, '')}&amp;download=false"
                                 target="_blank" class="text-decoration-none d-block">
                                 <div class="doc-card">
                                     <div class="doc-card-preview">
                                         <t t-if="doc.mimetype and doc.mimetype.startswith('image/')">
-                                            <img t-attf-src="/web/image/ir.attachment/#{doc.id}/datas" alt=""/>
+                                            <img t-attf-src="/web/image/ir.attachment/#{doc.id}/datas?access_token=#{attachment_tokens.get(doc.id, '')}" alt=""/>
                                         </t>
                                         <t t-else="">
                                             <i t-att-class="'fa fa-4x ' + ('fa-file-pdf-o doc-icon-pdf' if doc.mimetype == 'application/pdf' else 'fa-file-o doc-icon-default')"/>
