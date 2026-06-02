@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+#################################################################################
+#
+#   Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>)
+#   See LICENSE file for full copyright and licensing details.
+#   License URL : <https://store.webkul.com/license.html/>
+#
+#################################################################################
+
 from odoo import _, api, models
 from odoo.exceptions import ValidationError
 from odoo.tools import urls
@@ -19,7 +27,7 @@ class PaymentTransaction(models.Model):
         if self.provider_code != 'sknpay':
             return super()._get_specific_rendering_values(processing_values)
 
-        base_url = self.provider_id.get_base_url()
+        base_url = self.provider_id.get_base_url().replace('http://', 'https://', 1)
         return_url = urls.urljoin(base_url, f'{SKNPayController._return_url}?ref={self.reference}')
         webhook_url = urls.urljoin(base_url, SKNPayController._webhook_url)
 
@@ -28,7 +36,7 @@ class PaymentTransaction(models.Model):
 
         payload = {
             'amount': amount_minor,
-            'currency': self.currency_id.name,
+            'currency': 'XCD',  # TODO: revert once XCD is configured in Odoo
             'description': self.reference,
             'success_url': return_url,
             'cancel_url': base_url,
@@ -88,20 +96,20 @@ class PaymentTransaction(models.Model):
                 status, self.reference,
             )
 
-    def _send_refund_request(self, amount_to_refund=None):
+    def _send_refund_request(self):
         if self.provider_code != 'sknpay':
-            return super()._send_refund_request(amount_to_refund=amount_to_refund)
+            return super()._send_refund_request()
 
-        refund_tx = super()._send_refund_request(amount_to_refund=amount_to_refund)
+        # self is the refund child transaction; source_transaction_id is the original payment.
+        source_tx = self.source_transaction_id
+        amount_minor = int(round(abs(self.amount) * (10 ** self.currency_id.decimal_places)))
 
-        payload = {'payment_id': self.provider_reference}
-        if amount_to_refund is not None:
-            amount_minor = int(round(amount_to_refund * (10 ** self.currency_id.decimal_places)))
-            payload['amount'] = amount_minor
+        payload = {
+            'payment_id': source_tx.provider_reference,
+            'amount': amount_minor,
+        }
 
         try:
             self._send_api_request('POST', 'refunds', json=payload)
         except ValidationError as error:
-            refund_tx._set_error(str(error))
-
-        return refund_tx
+            self._set_error(str(error))

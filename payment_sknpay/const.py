@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
+#################################################################################
+#
+#   Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>)
+#   See LICENSE file for full copyright and licensing details.
+#   License URL : <https://store.webkul.com/license.html/>
+#
+#################################################################################
 
 API_BASE_URL = 'https://app.sknpay.com/api/v1'
 # Used when provider state == 'test'. Points to the local mock server.
 TEST_API_BASE_URL = 'http://172.17.0.1:5001/api/v1'
 
-SUPPORTED_CURRENCIES = ['USD', 'XCD']
+SUPPORTED_CURRENCIES = ['XCD','USD']
 
 # Mapping of SKNPay payment statuses to Odoo payment transaction states.
 PAYMENT_STATUS_MAPPING = {

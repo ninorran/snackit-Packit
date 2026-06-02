@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, models
-from .nr_whatsapp_utils import send_nr_partner_whatsapp
+#################################################################################
+#
+#   Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>)
+#   See LICENSE file for full copyright and licensing details.
+#   License URL : <https://store.webkul.com/license.html/>
+#
+#################################################################################
 
+from odoo import fields, models
 
 class NrSubmitDeliveryWizard(models.TransientModel):
     _name = 'nr.submit.delivery.wizard'

@@ -1,4 +1,12 @@
 # -*- coding: utf-8 -*-
+#################################################################################
+#
+#   Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>)
+#   See LICENSE file for full copyright and licensing details.
+#   License URL : <https://store.webkul.com/license.html/>
+#
+#################################################################################
+
 import json
 import pprint
 
@@ -31,7 +39,7 @@ class SKNPayController(http.Controller):
         _logger.info("SKNPay: return from checkout with data:\n%s", pprint.pformat(data))
 
         tx_sudo = request.env['payment.transaction'].sudo()._search_by_reference('sknpay', data)
-        if tx_sudo:
+        if tx_sudo and tx_sudo.state not in ('done', 'cancel', 'error'):
             try:
                 verified_data = tx_sudo._send_api_request(
                     'GET', f'payments/{tx_sudo.provider_reference}'
@@ -73,9 +81,10 @@ class SKNPayController(http.Controller):
             _logger.warning("SKNPay: webhook missing reference in metadata, ignoring")
             return ''
 
-        tx_sudo = request.env['payment.transaction'].sudo()._get_tx_from_notification_data(
+        tx_sudo = request.env['payment.transaction'].sudo()._search_by_reference(
             'sknpay', {'ref': reference}
         )
-        tx_sudo._process('sknpay', payment_obj)
+        if tx_sudo and tx_sudo.state not in ('done', 'cancel', 'error'):
+            tx_sudo._process('sknpay', payment_obj)
 
         return ''
