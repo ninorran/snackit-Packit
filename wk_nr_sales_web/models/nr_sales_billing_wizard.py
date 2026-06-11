@@ -34,6 +34,9 @@ class NrSalesBillingWizard(models.TransientModel):
                 'item_name': item.name,
                 'quantity': item.quantity,
                 'declared_value': item.declared_value,
+                'shipping_charge': item.shipping_charge,
+                'insurance_charge': item.insurance_charge,
+                'delivery_charge': item.delivery_charge,
             })
 
     def action_confirm(self):
@@ -67,6 +70,19 @@ class NrSalesBillingWizard(models.TransientModel):
         })
 
         self.request_id.invoice_ids = [(4, invoice.id)]
+
+        for billing_line in self.line_ids:
+            matching = self.request_id.line_ids.filtered(
+                lambda l: l.name == billing_line.item_name
+            )[:1]
+            if matching:
+                matching.write({
+                    'declared_value': billing_line.declared_value,
+                    'shipping_charge': billing_line.shipping_charge,
+                    'insurance_charge': billing_line.insurance_charge,
+                    'delivery_charge': billing_line.delivery_charge,
+                })
+
         return {
             'name': _('Invoice'),
             'type': 'ir.actions.act_window',
