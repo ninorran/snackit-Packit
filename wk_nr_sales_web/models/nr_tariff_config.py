@@ -18,3 +18,4 @@ class NrTariffConfig(models.Model):
     duty_charge = fields.Float(string='Duty Charge (%)', digits=(16, 4))
     csc_charge = fields.Float(string='CSC Charge (%)', digits=(16, 4))
     vat_charge = fields.Float(string='VAT Charge (%)', digits=(16, 4))
+    shipping_rate = fields.Float(string='Shipping Rate (XCD/lb)', digits=(16, 4))

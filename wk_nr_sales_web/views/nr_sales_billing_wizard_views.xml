@@ -19,6 +19,7 @@
                         <field name="item_name" readonly="1"/>
                         <field name="quantity" readonly="1"/>
                         <field name="declared_value" widget="monetary"/>
+                        <field name="weight" string="Weight (lbs)" readonly="1"/>
                         <field name="duty_charge" string="Duty" readonly="1" widget="monetary"/>
                         <field name="csc_charge" string="CSC" readonly="1" widget="monetary"/>
                         <field name="vat_charge" string="VAT" readonly="1" widget="monetary"/>

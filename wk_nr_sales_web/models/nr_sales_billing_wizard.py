@@ -34,6 +34,7 @@ class NrSalesBillingWizard(models.TransientModel):
                 'item_name': item.name,
                 'quantity': item.quantity,
                 'declared_value': item.declared_value,
+                'weight': item.weight,
                 'shipping_charge': item.shipping_charge,
                 'insurance_charge': item.insurance_charge,
                 'delivery_charge': item.delivery_charge,
@@ -77,6 +78,7 @@ class NrSalesBillingWizard(models.TransientModel):
             )[:1]
             if matching:
                 matching.write({
+                    'weight': billing_line.weight,
                     'declared_value': billing_line.declared_value,
                     'shipping_charge': billing_line.shipping_charge,
                     'insurance_charge': billing_line.insurance_charge,
@@ -102,6 +104,7 @@ class NrSalesBillingLine(models.TransientModel):
     item_name = fields.Char(string='Item Name', required=True)
     quantity = fields.Float(string='Quantity', default=1.0)
     declared_value = fields.Monetary(string='Declared Value')
+    weight = fields.Float(string='Weight (lbs)', digits=(16, 4))
 
     duty_charge = fields.Monetary(
         string='Duty Charge',
@@ -116,7 +119,10 @@ class NrSalesBillingLine(models.TransientModel):
         compute='_compute_charges', store=True, readonly=False,
     )
 
-    shipping_charge = fields.Monetary(string='Shipping Charge')
+    shipping_charge = fields.Monetary(
+        string='Shipping Charge',
+        compute='_compute_shipping_charge', store=True, readonly=False,
+    )
     insurance_charge = fields.Monetary(string='Insurance Charge')
     delivery_charge = fields.Monetary(string='Delivery Charge')
 
@@ -144,6 +150,15 @@ class NrSalesBillingLine(models.TransientModel):
                 line.duty_charge = 0.0
                 line.csc_charge = 0.0
                 line.vat_charge = 0.0
+
+    @api.depends('weight', 'wizard_id.tariff_id', 'wizard_id.tariff_id.shipping_rate')
+    def _compute_shipping_charge(self):
+        for line in self:
+            tariff = line.wizard_id.tariff_id
+            if tariff and line.weight:
+                line.shipping_charge = line.weight * tariff.shipping_rate
+            else:
+                line.shipping_charge = 0.0
 
     @api.depends(
         'declared_value',

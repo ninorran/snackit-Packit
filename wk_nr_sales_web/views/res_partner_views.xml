@@ -115,7 +115,7 @@
                             <field name="email"/>
                         </group>
                         <group string="NR Sales">
-                            <field name="nr_sales_customer"/>
+                            <field name="nr_sales_customer" readonly="1"/>
                             <field name="nr_sales_uid" readonly="1" invisible="not nr_sales_uid"/>
                         </group>
                     </group>

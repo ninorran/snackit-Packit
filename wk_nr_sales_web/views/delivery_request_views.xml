@@ -129,6 +129,7 @@
                                     <field name="quantity"/>
                                     <field name="declared_value" widget="monetary"/>
                                     <field name="currency_id" column_invisible="1"/>
+                                    <field name="weight" string="Weight (lbs)"/>
                                     <field name="shipping_charge" widget="monetary"/>
                                     <field name="insurance_charge" widget="monetary"/>
                                     <field name="delivery_charge" widget="monetary"/>

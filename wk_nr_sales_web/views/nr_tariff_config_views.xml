@@ -13,6 +13,7 @@
                 <field name="duty_charge" string="Duty (%)"/>
                 <field name="csc_charge" string="CSC (%)"/>
                 <field name="vat_charge" string="VAT Charge (%)"/>
+                <field name="shipping_rate" string="Shipping Rate (XCD/lb)"/>
             </list>
         </field>
     </record>
@@ -31,6 +32,7 @@
                         <field name="duty_charge" string="Duty Charge (%)"/>
                         <field name="csc_charge" string="CSC Charge (%)"/>
                         <field name="vat_charge" string="VAT Charge (%)"/>
+                        <field name="shipping_rate" string="Shipping Rate (XCD/lb)"/>
                     </group>
                 </sheet>
             </form>
