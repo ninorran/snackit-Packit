@@ -134,9 +134,9 @@
                                     <field name="duty_charge" string="Duty" widget="monetary" readonly="1"/>
                                     <field name="csc_charge" string="CSC" widget="monetary" readonly="1"/>
                                     <field name="vat_charge" string="VAT" widget="monetary" readonly="1"/>
-                                    <field name="shipping_charge" widget="monetary"/>
-                                    <field name="insurance_charge" widget="monetary"/>
-                                    <field name="delivery_charge" widget="monetary"/>
+                                    <field name="shipping_charge" string="Shipping" widget="monetary"/>
+                                    <field name="insurance_charge" string="Insurance" widget="monetary"/>
+                                    <field name="delivery_charge" string="Delivery" widget="monetary"/>
                                     <field name="notes"/>
                                 </list>
                             </field>
