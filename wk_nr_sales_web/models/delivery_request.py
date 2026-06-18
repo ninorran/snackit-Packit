@@ -43,6 +43,11 @@ class NrDeliveryRequest(models.Model):
     supplier_id = fields.Many2one('res.partner', string='Supplier', tracking=True)
     consignee_id = fields.Many2one('res.partner', string='Consignee', tracking=True)
     invoice_available = fields.Boolean(string='Invoice Available', tracking=True)
+    tariff_id = fields.Many2one(
+        'nr.tariff.config',
+        string='Tariff Options',
+        default=lambda self: self.env['nr.tariff.config'].search([], limit=1),
+    )
     line_ids = fields.One2many('nr.delivery.request.line', 'request_id', string='Items')
 
     picking_ids = fields.Many2many(

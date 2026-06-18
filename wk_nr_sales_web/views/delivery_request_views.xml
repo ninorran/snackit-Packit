@@ -106,6 +106,7 @@
                             <field name="partner_id"/>
                             <field name="supplier_id"/>
                             <field name="consignee_id"/>
+                            <field name="tariff_id"/>
                         </group>
                         <group>
                         <field name="payment_status" widget="badge"
@@ -130,6 +131,9 @@
                                     <field name="declared_value" widget="monetary"/>
                                     <field name="currency_id" column_invisible="1"/>
                                     <field name="weight" string="Weight (lbs)"/>
+                                    <field name="duty_charge" string="Duty" widget="monetary" readonly="1"/>
+                                    <field name="csc_charge" string="CSC" widget="monetary" readonly="1"/>
+                                    <field name="vat_charge" string="VAT" widget="monetary" readonly="1"/>
                                     <field name="shipping_charge" widget="monetary"/>
                                     <field name="insurance_charge" widget="monetary"/>
                                     <field name="delivery_charge" widget="monetary"/>

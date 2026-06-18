@@ -51,6 +51,7 @@ class NrCreateInvoiceWizard(models.TransientModel):
 
         billing = self.env['nr.nr_sales_billing_wizard'].create({
             'request_id': self.request_id.id,
+            'tariff_id': self.request_id.tariff_id.id or False,
         })
         billing._populate_lines()
         return {
