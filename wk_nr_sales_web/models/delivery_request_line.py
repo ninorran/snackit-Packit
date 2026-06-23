@@ -16,7 +16,7 @@ class NrDeliveryRequestLine(models.Model):
 
     request_id = fields.Many2one('nr.delivery.request', required=True, ondelete='cascade')
     currency_id = fields.Many2one(related='request_id.currency_id')
-    name = fields.Char(string='Item Name', required=True)
+    name = fields.Char(string='Tracking', required=True)
     description = fields.Text(string='Item Description')
     quantity = fields.Float(string='Quantity', default=1.0, required=True)
     declared_value = fields.Monetary(string='Declared Value', currency_field='currency_id')

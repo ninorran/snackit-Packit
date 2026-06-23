@@ -15,11 +15,9 @@ class NrSubmitDeliveryWizard(models.TransientModel):
 
     request_id = fields.Many2one('nr.delivery.request', required=True, readonly=True)
     supplier_id = fields.Many2one('res.partner', string='Supplier')
-    consignee_id = fields.Many2one('res.partner', string='Consignee')
     def action_confirm(self):
         self.request_id.write({
             'supplier_id': self.supplier_id.id,
-            'consignee_id': self.consignee_id.id,
             'state': 'approved',
         })
         self.request_id._send_whatsapp_notification('dr_approved')

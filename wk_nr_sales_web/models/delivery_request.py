@@ -41,7 +41,6 @@ class NrDeliveryRequest(models.Model):
     state_before_hold = fields.Char(string='State Before Hold', copy=False)
     date_received = fields.Datetime(string='Date Received', tracking=True)
     supplier_id = fields.Many2one('res.partner', string='Supplier', tracking=True)
-    consignee_id = fields.Many2one('res.partner', string='Consignee', tracking=True)
     invoice_available = fields.Boolean(string='Invoice Available', tracking=True)
     tariff_id = fields.Many2one(
         'nr.tariff.config',
@@ -109,12 +108,6 @@ class NrDeliveryRequest(models.Model):
         'request_id', 'attachment_id',
         string='Supplier Invoice',
     )
-    purchase_invoice_ids = fields.Many2many(
-        'ir.attachment',
-        'nr_delivery_purchase_att_rel',
-        'request_id', 'attachment_id',
-        string='Purchase Invoice',
-    )
     shipping_document_ids = fields.Many2many(
         'ir.attachment',
         'nr_delivery_shipping_att_rel',
@@ -127,7 +120,6 @@ class NrDeliveryRequest(models.Model):
         for rec in self:
             rec.document_count = (
                 len(rec.supplier_invoice_ids)
-                + len(rec.purchase_invoice_ids)
                 + len(rec.shipping_document_ids)
             )
 
@@ -140,7 +132,6 @@ class NrDeliveryRequest(models.Model):
             'view_mode': 'list',
             'domain': [('id', 'in', (
                 self.supplier_invoice_ids
-                + self.purchase_invoice_ids
                 + self.shipping_document_ids
             ).ids)],
         }
@@ -275,7 +266,6 @@ class NrDeliveryRequest(models.Model):
         wizard = self.env['nr.submit.delivery.wizard'].create({
             'request_id': self.id,
             'supplier_id': self.supplier_id.id,
-            'consignee_id': self.consignee_id.id,
         })
         return {
             'name': _('Approve Delivery Request'),

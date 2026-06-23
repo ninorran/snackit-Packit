@@ -330,7 +330,7 @@
 
                                 <!-- Existing documents with delete option + new uploads -->
                                 <h5 class="mb-3">Documents</h5>
-                                <t t-foreach="[('supplier_invoice_ids', 'Supplier Invoice', 'supplier_invoice'), ('purchase_invoice_ids', 'Purchase Invoice', 'purchase_invoice'), ('shipping_document_ids', 'Shipping Documents', 'shipping_document')]" t-as="doc_info">
+                                <t t-foreach="[('supplier_invoice_ids', 'Supplier Invoice', 'supplier_invoice'), ('shipping_document_ids', 'Shipping Documents', 'shipping_document')]" t-as="doc_info">
                                     <div class="mb-4">
                                         <div class="small text-uppercase fw-semibold text-muted mb-2" style="letter-spacing:.05em;">
                                             <t t-out="doc_info[1]"/>
@@ -457,11 +457,11 @@
     <!-- Reusable read-only documents block -->
     <template id="portal_delivery_request_documents_readonly" name="Delivery Request Documents (Read-only)">
         <h5>Documents</h5>
-        <t t-set="any_docs" t-value="delivery_request.supplier_invoice_ids or delivery_request.purchase_invoice_ids or delivery_request.shipping_document_ids"/>
+        <t t-set="any_docs" t-value="delivery_request.supplier_invoice_ids or delivery_request.shipping_document_ids"/>
         <t t-if="not any_docs">
             <p class="text-muted small mt-2">No documents uploaded.</p>
         </t>
-        <t t-foreach="[('supplier_invoice_ids', 'Supplier Invoice'), ('purchase_invoice_ids', 'Purchase Invoice'), ('shipping_document_ids', 'Shipping Documents')]" t-as="doc_info">
+        <t t-foreach="[('supplier_invoice_ids', 'Supplier Invoice'), ('shipping_document_ids', 'Shipping Documents')]" t-as="doc_info">
             <t t-if="delivery_request[doc_info[0]]">
                 <h6 class="text-muted mt-3 mb-2 small text-uppercase fw-semibold" style="letter-spacing:.05em;">
                     <t t-out="doc_info[1]"/>
@@ -560,10 +560,6 @@
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Supplier Invoice</label>
                                 <input type="file" class="form-control" name="supplier_invoice" multiple="multiple" accept=".pdf,.jpg,.jpeg,.png"/>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold">Purchase Invoice</label>
-                                <input type="file" class="form-control" name="purchase_invoice" multiple="multiple" accept=".pdf,.jpg,.jpeg,.png"/>
                             </div>
                             <div class="col-md-4">
                                 <label class="form-label fw-semibold">Shipping Documents</label>

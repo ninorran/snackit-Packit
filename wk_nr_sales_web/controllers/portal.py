@@ -81,7 +81,6 @@ class NrSalesPortal(CustomerPortal):
 
         all_docs = (
             record_sudo.supplier_invoice_ids
-            + record_sudo.purchase_invoice_ids
             + record_sudo.shipping_document_ids
         )
         all_docs.sudo().generate_access_token()
@@ -162,7 +161,7 @@ class NrSalesPortal(CustomerPortal):
         # Handle file uploads for each document type
         doc_fields = {
             'supplier_invoice': 'supplier_invoice_ids',
-            'purchase_invoice': 'purchase_invoice_ids',
+
             'shipping_document': 'shipping_document_ids',
         }
         for file_key, field_name in doc_fields.items():
@@ -236,7 +235,7 @@ class NrSalesPortal(CustomerPortal):
         # --- delete checked documents ---
         delete_fields = {
             'delete_doc_supplier_invoice': 'supplier_invoice_ids',
-            'delete_doc_purchase_invoice': 'purchase_invoice_ids',
+
             'delete_doc_shipping_document': 'shipping_document_ids',
         }
         for form_key, field_name in delete_fields.items():
@@ -248,7 +247,7 @@ class NrSalesPortal(CustomerPortal):
         # --- upload new documents ---
         doc_fields = {
             'supplier_invoice': 'supplier_invoice_ids',
-            'purchase_invoice': 'purchase_invoice_ids',
+
             'shipping_document': 'shipping_document_ids',
         }
         for file_key, field_name in doc_fields.items():

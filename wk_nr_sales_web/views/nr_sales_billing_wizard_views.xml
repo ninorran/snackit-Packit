@@ -16,10 +16,10 @@
                 </group>
                 <field name="line_ids">
                     <list editable="bottom" no_open="0" create="0" delete="1">
-                        <field name="item_name" readonly="1"/>
-                        <field name="quantity" readonly="1"/>
-                        <field name="declared_value" widget="monetary"/>
-                        <field name="weight" string="Weight (lbs)" readonly="1"/>
+                        <field name="item_name" string="Tracking #" readonly="1"/>
+                        <field name="quantity" string="Qty" readonly="1"/>
+                        <field name="declared_value" string="D-Value" widget="monetary"/>
+                        <field name="weight" string="Weight" readonly="1"/>
                         <field name="duty_charge" string="Duty" readonly="1" widget="monetary"/>
                         <field name="csc_charge" string="CSC" readonly="1" widget="monetary"/>
                         <field name="vat_charge" string="VAT" readonly="1" widget="monetary"/>

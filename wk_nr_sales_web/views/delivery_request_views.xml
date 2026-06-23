@@ -104,8 +104,7 @@
                     <group>
                         <group>
                             <field name="partner_id"/>
-                            <field name="supplier_id"/>
-                            <field name="consignee_id"/>
+                            <field name="supplier_id" domain="[('supplier_rank', '>', 0)]"/>
                             <field name="tariff_id"/>
                         </group>
                         <group>
@@ -125,12 +124,12 @@
                         <page string="Items">
                             <field name="line_ids">
                                 <list editable="bottom">
-                                    <field name="name"/>
-                                    <field name="description"/>
-                                    <field name="quantity"/>
-                                    <field name="declared_value" widget="monetary"/>
+                                    <field name="name" string="Tracking #"/>
+                                    <field name="description" string="Desc."/>
+                                    <field name="quantity" string="Qty"/>
+                                    <field name="declared_value" string="D-value" widget="monetary"/>
                                     <field name="currency_id" column_invisible="1"/>
-                                    <field name="weight" string="Weight (lbs)"/>
+                                    <field name="weight" string="Weight"/>
                                     <field name="duty_charge" string="Duty" widget="monetary" readonly="1"/>
                                     <field name="csc_charge" string="CSC" widget="monetary" readonly="1"/>
                                     <field name="vat_charge" string="VAT" widget="monetary" readonly="1"/>
@@ -142,53 +141,6 @@
                             </field>
                         </page>
                         <page string="Documents">
-                            <div class="o_field_widget mb-4">
-                                <div class="o_form_label fw-bold mb-2">Purchase Invoice</div>
-                                <field name="purchase_invoice_ids" nolabel="1">
-                                    <kanban>
-                                        <field name="id"/>
-                                        <field name="name"/>
-                                        <field name="mimetype"/>
-                                        <field name="file_size"/>
-                                        <field name="create_date"/>
-                                        <templates>
-                                            <t t-name="card">
-                                                <div class="d-flex flex-column h-100">
-                                                    <div class="o_kanban_image_wrapper d-flex align-items-center justify-content-center bg-light border-bottom" style="height:90px;">
-                                                        <t t-if="record.mimetype.raw_value and record.mimetype.raw_value.startsWith('image/')">
-                                                            <img t-attf-src="/web/image/ir.attachment/#{record.id.raw_value}/datas" style="max-height:88px;max-width:100%;object-fit:contain;" t-att-alt="record.name.raw_value"/>
-                                                        </t>
-                                                        <t t-elif="record.mimetype.raw_value === 'application/pdf'">
-                                                            <i class="fa fa-file-pdf-o fa-3x text-danger" aria-label="PDF file"/>
-                                                        </t>
-                                                        <t t-else="">
-                                                            <i class="fa fa-file-o fa-3x text-muted" aria-label="File"/>
-                                                        </t>
-                                                    </div>
-                                                    <div class="p-2 flex-grow-1">
-                                                        <div class="fw-bold text-truncate small" t-att-title="record.name.raw_value">
-                                                            <t t-out="record.name.raw_value"/>
-                                                        </div>
-                                                        <div class="text-muted" style="font-size:.7rem;">
-                                                            <t t-if="record.file_size.raw_value">
-                                                                <t t-out="record.file_size.raw_value &lt; 1048576 ? (record.file_size.raw_value / 1024).toFixed(1) + ' KB' : (record.file_size.raw_value / 1048576).toFixed(1) + ' MB'"/>
-                                                            </t>
-                                                        </div>
-                                                    </div>
-                                                    <div class="p-2 pt-0 text-end">
-                                                        <button name="action_open_preview" type="object"
-                                                            class="btn btn-sm btn-outline-primary"
-                                                            title="Preview in new tab">
-                                                            <i class="fa fa-eye me-1"/>Preview
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </t>
-                                        </templates>
-                                    </kanban>
-                                </field>
-                            </div>
-
                             <div class="o_field_widget mb-4">
                                 <div class="o_form_label fw-bold mb-2">Supplier Invoice</div>
                                 <field name="supplier_invoice_ids" nolabel="1">
