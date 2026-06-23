@@ -124,8 +124,7 @@
                         <page string="Items">
                             <field name="line_ids">
                                 <list editable="bottom">
-                                    <field name="name" string="Tracking #"/>
-                                    <field name="description" string="Desc."/>
+                                    <field name="name" string="Tracking #" width="220px"/>
                                     <field name="quantity" string="Qty"/>
                                     <field name="declared_value" string="D-value" widget="monetary"/>
                                     <field name="currency_id" column_invisible="1"/>
@@ -136,6 +135,7 @@
                                     <field name="shipping_charge" string="Shipping" widget="monetary"/>
                                     <field name="insurance_charge" string="Insurance" widget="monetary"/>
                                     <field name="delivery_charge" string="Delivery" widget="monetary"/>
+                                    <field name="description" string="Desc."/>
                                     <field name="notes"/>
                                 </list>
                             </field>
