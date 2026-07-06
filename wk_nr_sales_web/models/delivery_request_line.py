@@ -51,16 +51,22 @@ class NrDeliveryRequestLine(models.Model):
     )
     def _compute_charges(self):
         for line in self:
-            tariff = line.request_id.tariff_id
-            if tariff:
-                duty = line.declared_value * (tariff.duty_charge / 100)
-                csc = line.declared_value * (tariff.csc_charge / 100)
-                taxable = line.declared_value + duty + csc
-                vat = taxable * (tariff.vat_charge / 100)
-                shipping = line.weight * tariff.shipping_rate if line.weight else 0.0
-            else:
-                duty = csc = vat = shipping = 0.0
-            line.duty_charge = duty
-            line.csc_charge = csc
-            line.vat_charge = vat
-            line.shipping_charge = shipping
+            line._calc_charges(line.request_id.tariff_id)
+
+    @api.onchange('declared_value', 'weight')
+    def _onchange_line_values(self):
+        self._calc_charges(self.request_id.tariff_id)
+
+    def _calc_charges(self, tariff):
+        if tariff:
+            duty = self.declared_value * (tariff.duty_charge / 100)
+            csc = self.declared_value * (tariff.csc_charge / 100)
+            taxable = self.declared_value + duty + csc
+            vat = taxable * (tariff.vat_charge / 100)
+            shipping = self.weight * tariff.shipping_rate if self.weight else 0.0
+        else:
+            duty = csc = vat = shipping = 0.0
+        self.duty_charge = duty
+        self.csc_charge = csc
+        self.vat_charge = vat
+        self.shipping_charge = shipping

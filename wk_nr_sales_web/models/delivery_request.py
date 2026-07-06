@@ -47,7 +47,13 @@ class NrDeliveryRequest(models.Model):
         string='Tariff Options',
         default=lambda self: self.env['nr.tariff.config'].search([], limit=1),
     )
+    skb_loc = fields.Char(string='SKB-Loc')
     line_ids = fields.One2many('nr.delivery.request.line', 'request_id', string='Items')
+
+    @api.onchange('tariff_id')
+    def _onchange_tariff_id(self):
+        for line in self.line_ids:
+            line._calc_charges(self.tariff_id)
 
     picking_ids = fields.Many2many(
         'stock.picking',

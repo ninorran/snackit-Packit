@@ -17,6 +17,7 @@
                 decoration-success="state in ('out_for_delivery', 'delivered', 'package_returned')">
                 <field name="name"/>
                 <field name="partner_id"/>
+                <field name="skb_loc" string="SKB-Loc"/>
                 <field name="create_date" string="Created"/>
                 <field name="state" widget="badge"/>
                 <field name="payment_status" widget="badge"
@@ -108,16 +109,17 @@
                             <field name="tariff_id"/>
                         </group>
                         <group>
-                        <field name="payment_status" widget="badge"
+                            <field name="payment_status" widget="badge"
                             decoration-success="payment_status == 'paid'"
                             decoration-warning="payment_status == 'partial'"
                             decoration-danger="payment_status == 'not_paid'"
                             invisible="not payment_status"
                             class="ms-auto me-2 align-self-center"/>
-<field name="invoice_available" widget="boolean_toggle"/>
+                            <field name="invoice_available" widget="boolean_toggle"/>
                             <field name="date_received"
-                                readonly="state != 'parcel_received'"
-                                invisible="not date_received"/>
+                            readonly="state != 'parcel_received'"
+                            invisible="not date_received"/>
+                            <field name="skb_loc" string="SKB-Loc"/>
                         </group>
                     </group>
                     <notebook>

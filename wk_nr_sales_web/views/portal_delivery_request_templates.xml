@@ -54,13 +54,13 @@
             <t t-if="not delivery_requests">
                 <div class="alert alert-info mt-3">
                     You have no delivery requests yet.
-                    <a href="/my/delivery-requests/new" class="alert-link">Create one now.</a>
+                    <a href="/my/delivery-requests/new" class="alert-link">Create delivery request</a>
                 </div>
             </t>
             <t t-else="">
                 <div class="d-flex justify-content-end mb-3">
                     <a href="/my/delivery-requests/new" class="btn btn-primary btn-sm">
-                        <i class="fa fa-plus me-1"/> New Request
+                        <i class="fa fa-plus me-1"/> Create delivery request
                     </a>
                 </div>
                 <div class="card">
