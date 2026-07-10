@@ -19,3 +19,5 @@ class NrTariffConfig(models.Model):
     csc_charge = fields.Float(string='CSC Charge (%)', digits=(16, 4))
     vat_charge = fields.Float(string='VAT Charge (%)', digits=(16, 4))
     shipping_rate = fields.Float(string='Shipping Rate (XCD/lb)', digits=(16, 4))
+    insurance_bracket_value = fields.Float(string='Insurance Bracket Value (XCD)', default=270.0, digits=(16, 2))
+    insurance_bracket_charge = fields.Float(string='Insurance Bracket Charge (XCD)', default=4.0, digits=(16, 2))

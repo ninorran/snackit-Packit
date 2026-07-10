@@ -7,6 +7,8 @@
 #
 #################################################################################
 
+import math
+
 from odoo import api, fields, models
 
 
@@ -37,7 +39,10 @@ class NrDeliveryRequestLine(models.Model):
         string='Shipping Charge', currency_field='currency_id',
         compute='_compute_charges', store=True, readonly=False,
     )
-    insurance_charge = fields.Monetary(string='Insurance Charge', currency_field='currency_id')
+    insurance_charge = fields.Monetary(
+        string='Insurance Charge', currency_field='currency_id',
+        compute='_compute_charges', store=True, readonly=False,
+    )
     delivery_charge = fields.Monetary(string='Delivery Charge', currency_field='currency_id')
     notes = fields.Text(string='Additional Notes')
 
@@ -48,6 +53,8 @@ class NrDeliveryRequestLine(models.Model):
         'request_id.tariff_id.csc_charge',
         'request_id.tariff_id.vat_charge',
         'request_id.tariff_id.shipping_rate',
+        'request_id.tariff_id.insurance_bracket_value',
+        'request_id.tariff_id.insurance_bracket_charge',
     )
     def _compute_charges(self):
         for line in self:
@@ -64,9 +71,13 @@ class NrDeliveryRequestLine(models.Model):
             taxable = self.declared_value + duty + csc
             vat = taxable * (tariff.vat_charge / 100)
             shipping = self.weight * tariff.shipping_rate if self.weight else 0.0
+            bracket = tariff.insurance_bracket_value or 270.0
+            charge = tariff.insurance_bracket_charge or 4.0
+            insurance = math.ceil(self.declared_value / bracket) * charge if self.declared_value else 0.0
         else:
-            duty = csc = vat = shipping = 0.0
+            duty = csc = vat = shipping = insurance = 0.0
         self.duty_charge = duty
         self.csc_charge = csc
         self.vat_charge = vat
         self.shipping_charge = shipping
+        self.insurance_charge = insurance

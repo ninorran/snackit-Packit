@@ -32,6 +32,7 @@ class NrSalesBillingWizard(models.TransientModel):
             self.env['nr.nr_sales_billing_line'].create({
                 'wizard_id': self.id,
                 'item_name': item.name,
+                'product_description': item.description,
                 'quantity': item.quantity,
                 'declared_value': item.declared_value,
                 'weight': item.weight,
@@ -62,6 +63,7 @@ class NrSalesBillingWizard(models.TransientModel):
 
             invoice_line_vals.append((0, 0, {
                 'name': '\n'.join(parts),
+                'product_description': line.product_description,
                 'quantity': line.quantity,
                 'price_unit': line.total,
             }))
@@ -108,7 +110,8 @@ class NrSalesBillingLine(models.TransientModel):
     wizard_id = fields.Many2one('nr.nr_sales_billing_wizard', required=True, ondelete='cascade')
     currency_id = fields.Many2one(related='wizard_id.currency_id')
 
-    item_name = fields.Char(string='Item Name', required=True)
+    item_name = fields.Char(string='Tracking #', required=True)
+    product_description = fields.Text(string='Product Description')
     quantity = fields.Float(string='Quantity', default=1.0)
     declared_value = fields.Monetary(string='Declared Value')
     weight = fields.Float(string='Weight (lbs)', digits=(16, 4))
@@ -168,15 +171,13 @@ class NrSalesBillingLine(models.TransientModel):
                 line.shipping_charge = 0.0
 
     @api.depends(
-        'declared_value',
         'duty_charge', 'csc_charge', 'vat_charge',
         'shipping_charge', 'insurance_charge', 'delivery_charge',
     )
     def _compute_total(self):
         for line in self:
             line.total = (
-                line.declared_value
-                + line.duty_charge
+                line.duty_charge
                 + line.csc_charge
                 + line.vat_charge
                 + line.shipping_charge

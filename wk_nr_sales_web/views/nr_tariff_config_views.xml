@@ -14,6 +14,8 @@
                 <field name="csc_charge" string="CSC (%)"/>
                 <field name="vat_charge" string="VAT Charge (%)"/>
                 <field name="shipping_rate" string="Shipping Rate (XCD/lb)"/>
+                <field name="insurance_bracket_value" string="Insurance Bracket (XCD)"/>
+                <field name="insurance_bracket_charge" string="Insurance Charge/Bracket (XCD)"/>
             </list>
         </field>
     </record>
@@ -33,6 +35,8 @@
                         <field name="csc_charge" string="CSC Charge (%)"/>
                         <field name="vat_charge" string="VAT Charge (%)"/>
                         <field name="shipping_rate" string="Shipping Rate (XCD/lb)"/>
+                        <field name="insurance_bracket_value" string="Insurance Bracket Value (XCD)"/>
+                        <field name="insurance_bracket_charge" string="Insurance Bracket Charge (XCD)"/>
                     </group>
                 </sheet>
             </form>

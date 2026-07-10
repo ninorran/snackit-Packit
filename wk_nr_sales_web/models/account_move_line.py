@@ -7,4 +7,10 @@
 #
 #################################################################################
 
-from . import res_partner, res_users, portal_wizard, delivery_request, delivery_request_line, nr_sales_config, grant_portal_wizard, create_invoice_wizard, parcel_received_wizard, submit_wizard, stock_picking, nr_tariff_config, nr_sales_billing_wizard, nr_whatsapp_event_config, nr_document_check_wizard, ir_attachment, account_move_line
+from odoo import fields, models
+
+
+class AccountMoveLine(models.Model):
+    _inherit = 'account.move.line'
+
+    product_description = fields.Text(string='Product Description')

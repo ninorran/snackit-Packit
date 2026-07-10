@@ -37,6 +37,7 @@
                         "views/grant_portal_wizard_views.xml",
                         "views/create_invoice_wizard_views.xml",
                         "views/nr_sales_billing_wizard_views.xml",
+                        "views/account_move_line_views.xml",
                         "views/nr_document_check_wizard_views.xml",
                         "views/parcel_received_wizard_views.xml",
                         "views/submit_wizard_views.xml",
