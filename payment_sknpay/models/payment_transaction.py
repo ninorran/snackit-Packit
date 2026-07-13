@@ -36,10 +36,11 @@ class PaymentTransaction(models.Model):
 
         payload = {
             'amount': amount_minor,
-            'currency': 'XCD',  # TODO: revert once XCD is configured in Odoo
+            'currency': self.currency_id.name,
             'description': self.reference,
             'success_url': return_url,
             'cancel_url': base_url,
+            'webhook_url': webhook_url,
             'metadata': {'reference': self.reference},
         }
         if self.partner_email:
@@ -110,6 +111,10 @@ class PaymentTransaction(models.Model):
         }
 
         try:
-            self._send_api_request('POST', 'refunds', json=payload)
+            refund_data = self._send_api_request('POST', 'refunds', json=payload)
         except ValidationError as error:
             self._set_error(str(error))
+            return
+
+        self.provider_reference = refund_data.get('id')
+        self._process('sknpay', refund_data)
