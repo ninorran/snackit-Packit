@@ -12,3 +12,11 @@ access_nr_sales_billing_wizard,nr.nr_sales_billing_wizard,model_nr_nr_sales_bill
 access_nr_sales_billing_line,nr.nr_sales_billing_line,model_nr_nr_sales_billing_line,,1,1,1,1
 access_nr_whatsapp_event_config,nr.whatsapp.event.config,model_nr_whatsapp_event_config,,1,1,1,1
 access_nr_document_check_wizard,nr.document.check.wizard,model_nr_document_check_wizard,,1,1,1,1
+access_nr_product_product,nr.product.product,product.model_product_product,,1,0,0,0
+access_nr_product_template,nr.product.template,product.model_product_template,,1,0,0,0
+access_nr_uom_uom,nr.uom.uom,uom.model_uom_uom,,1,0,0,0
+access_nr_stock_warehouse,nr.stock.warehouse,stock.model_stock_warehouse,,1,0,0,0
+access_nr_stock_picking_type,nr.stock.picking.type,stock.model_stock_picking_type,,1,0,0,0
+access_nr_stock_location,nr.stock.location,stock.model_stock_location,,1,0,0,0
+access_nr_stock_picking,nr.stock.picking,stock.model_stock_picking,,1,1,1,0
+access_nr_stock_move,nr.stock.move,stock.model_stock_move,,1,1,1,0

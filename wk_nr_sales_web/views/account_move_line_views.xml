@@ -4,14 +4,24 @@
 <!-- License URL : <https://store.webkul.com/license.html/> -->
 <odoo>
 
-    <!-- Invoice form: add Product Description column to invoice lines list -->
+    <!-- Invoice form: add Product Description + Weight columns, hide Account and Tax -->
     <record id="view_move_form_add_product_description" model="ir.ui.view">
         <field name="name">account.move.form.product_description</field>
         <field name="model">account.move</field>
         <field name="inherit_id" ref="account.view_move_form"/>
         <field name="arch" type="xml">
+            <!-- Add Product Description after name -->
             <xpath expr="//field[@name='invoice_line_ids']//list//field[@name='name']" position="after">
                 <field name="product_description" string="Product Description" optional="show"/>
+                <field name="weight" string="Weight" optional="show"/>
+            </xpath>
+            <!-- Hide Account column -->
+            <xpath expr="//field[@name='invoice_line_ids']//list//field[@name='account_id']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
+            </xpath>
+            <!-- Hide Tax column -->
+            <xpath expr="//field[@name='invoice_line_ids']//list//field[@name='tax_ids']" position="attributes">
+                <attribute name="column_invisible">1</attribute>
             </xpath>
         </field>
     </record>

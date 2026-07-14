@@ -23,42 +23,13 @@ class NrDeliveryRequestLine(models.Model):
     quantity = fields.Float(string='Quantity', default=1.0, required=True)
     declared_value = fields.Monetary(string='Declared Value', currency_field='currency_id')
     weight = fields.Float(string='Weight (lbs)', digits=(16, 4))
-    duty_charge = fields.Monetary(
-        string='Duty Charge', currency_field='currency_id',
-        compute='_compute_charges', store=True, readonly=False,
-    )
-    csc_charge = fields.Monetary(
-        string='CSC Charge', currency_field='currency_id',
-        compute='_compute_charges', store=True, readonly=False,
-    )
-    vat_charge = fields.Monetary(
-        string='VAT Charge', currency_field='currency_id',
-        compute='_compute_charges', store=True, readonly=False,
-    )
-    shipping_charge = fields.Monetary(
-        string='Shipping Charge', currency_field='currency_id',
-        compute='_compute_charges', store=True, readonly=False,
-    )
-    insurance_charge = fields.Monetary(
-        string='Insurance Charge', currency_field='currency_id',
-        compute='_compute_charges', store=True, readonly=False,
-    )
+    duty_charge = fields.Monetary(string='Duty Charge', currency_field='currency_id')
+    csc_charge = fields.Monetary(string='CSC Charge', currency_field='currency_id')
+    vat_charge = fields.Monetary(string='VAT Charge', currency_field='currency_id')
+    shipping_charge = fields.Monetary(string='Shipping Charge', currency_field='currency_id')
+    insurance_charge = fields.Monetary(string='Insurance Charge', currency_field='currency_id')
     delivery_charge = fields.Monetary(string='Delivery Charge', currency_field='currency_id')
     notes = fields.Text(string='Additional Notes')
-
-    @api.depends(
-        'declared_value', 'weight',
-        'request_id.tariff_id',
-        'request_id.tariff_id.duty_charge',
-        'request_id.tariff_id.csc_charge',
-        'request_id.tariff_id.vat_charge',
-        'request_id.tariff_id.shipping_rate',
-        'request_id.tariff_id.insurance_bracket_value',
-        'request_id.tariff_id.insurance_bracket_charge',
-    )
-    def _compute_charges(self):
-        for line in self:
-            line._calc_charges(line.request_id.tariff_id)
 
     @api.onchange('declared_value', 'weight')
     def _onchange_line_values(self):

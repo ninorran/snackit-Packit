@@ -131,9 +131,9 @@
                                     <field name="declared_value" string="D-value" widget="monetary"/>
                                     <field name="currency_id" column_invisible="1"/>
                                     <field name="weight" string="Weight"/>
-                                    <field name="duty_charge" string="Duty" widget="monetary" readonly="1"/>
-                                    <field name="csc_charge" string="CSC" widget="monetary" readonly="1"/>
-                                    <field name="vat_charge" string="VAT" widget="monetary" readonly="1"/>
+                                    <field name="duty_charge" string="Duty" widget="monetary"/>
+                                    <field name="csc_charge" string="CSC" widget="monetary"/>
+                                    <field name="vat_charge" string="VAT" widget="monetary"/>
                                     <field name="shipping_charge" string="Shipping" widget="monetary"/>
                                     <field name="insurance_charge" string="Insurance" widget="monetary"/>
                                     <field name="delivery_charge" string="Delivery" widget="monetary"/>

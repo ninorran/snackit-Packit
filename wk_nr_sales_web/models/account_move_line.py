@@ -14,3 +14,4 @@ class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 
     product_description = fields.Text(string='Product Description')
+    weight = fields.Float(string='Weight', digits=(16, 4))

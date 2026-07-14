@@ -7,6 +7,8 @@
 #
 #################################################################################
 
+import math
+
 from odoo import api, fields, models, _
 
 
@@ -58,12 +60,12 @@ class NrSalesBillingWizard(models.TransientModel):
                 ('Insurance Charge', line.insurance_charge),
                 ('Delivery Charge',  line.delivery_charge),
             ]:
-                if amount:
-                    parts.append(f'  {label}: {amount:.2f}')
+                parts.append(f'  {label}: {amount:.2f}')
 
             invoice_line_vals.append((0, 0, {
                 'name': '\n'.join(parts),
                 'product_description': line.product_description,
+                'weight': line.weight,
                 'quantity': line.quantity,
                 'price_unit': line.total,
             }))
@@ -116,59 +118,32 @@ class NrSalesBillingLine(models.TransientModel):
     declared_value = fields.Monetary(string='Declared Value')
     weight = fields.Float(string='Weight (lbs)', digits=(16, 4))
 
-    duty_charge = fields.Monetary(
-        string='Duty Charge',
-        compute='_compute_charges', store=True, readonly=False,
-    )
-    csc_charge = fields.Monetary(
-        string='CSC Charge',
-        compute='_compute_charges', store=True, readonly=False,
-    )
-    vat_charge = fields.Monetary(
-        string='VAT Charge',
-        compute='_compute_charges', store=True, readonly=False,
-    )
-
-    shipping_charge = fields.Monetary(
-        string='Shipping Charge',
-        compute='_compute_shipping_charge', store=True, readonly=False,
-    )
+    duty_charge = fields.Monetary(string='Duty Charge')
+    csc_charge = fields.Monetary(string='CSC Charge')
+    vat_charge = fields.Monetary(string='VAT Charge')
+    shipping_charge = fields.Monetary(string='Shipping Charge')
     insurance_charge = fields.Monetary(string='Insurance Charge')
     delivery_charge = fields.Monetary(string='Delivery Charge')
 
     total = fields.Monetary(string='Total', compute='_compute_total', store=True)
 
-    @api.depends(
-        'declared_value',
-        'wizard_id.tariff_id',
-        'wizard_id.tariff_id.duty_charge',
-        'wizard_id.tariff_id.csc_charge',
-        'wizard_id.tariff_id.vat_charge',
-    )
-    def _compute_charges(self):
-        for line in self:
-            tariff = line.wizard_id.tariff_id
-            if tariff:
-                duty = line.declared_value * (tariff.duty_charge / 100)
-                csc = line.declared_value * (tariff.csc_charge / 100)
-                taxable = line.declared_value + duty + csc
-                vat = taxable * (tariff.vat_charge / 100)
-                line.duty_charge = duty
-                line.csc_charge = csc
-                line.vat_charge = vat
-            else:
-                line.duty_charge = 0.0
-                line.csc_charge = 0.0
-                line.vat_charge = 0.0
-
-    @api.depends('weight', 'wizard_id.tariff_id', 'wizard_id.tariff_id.shipping_rate')
-    def _compute_shipping_charge(self):
-        for line in self:
-            tariff = line.wizard_id.tariff_id
-            if tariff and line.weight:
-                line.shipping_charge = line.weight * tariff.shipping_rate
-            else:
-                line.shipping_charge = 0.0
+    @api.onchange('declared_value', 'weight', 'wizard_id')
+    def _onchange_recalculate(self):
+        tariff = self.wizard_id.tariff_id
+        if tariff:
+            duty = self.declared_value * (tariff.duty_charge / 100)
+            csc = self.declared_value * (tariff.csc_charge / 100)
+            taxable = self.declared_value + duty + csc
+            vat = taxable * (tariff.vat_charge / 100)
+            shipping = self.weight * tariff.shipping_rate if self.weight else 0.0
+            bracket = tariff.insurance_bracket_value or 270.0
+            charge = tariff.insurance_bracket_charge or 4.0
+            insurance = math.ceil(self.declared_value / bracket) * charge if self.declared_value else 0.0
+            self.duty_charge = duty
+            self.csc_charge = csc
+            self.vat_charge = vat
+            self.shipping_charge = shipping
+            self.insurance_charge = insurance
 
     @api.depends(
         'duty_charge', 'csc_charge', 'vat_charge',
