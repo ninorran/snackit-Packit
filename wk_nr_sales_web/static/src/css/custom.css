@@ -1,0 +1,4 @@
+/* Hide the "Untaxed Amount" row from the invoice tax totals widget */
+tr:has(span[name="Untaxed Amount"]) {
+    display: none !important;
+}

@@ -44,6 +44,11 @@
                         "views/nr_sales_registration_templates.xml",
                         "views/portal_delivery_request_templates.xml",
                     ],
+    "assets": {
+        "web.assets_backend": [
+            "wk_nr_sales_web/static/src/css/custom.css",
+        ],
+    },
     "application": True,
     "installable": True,
     "auto_install": False,
