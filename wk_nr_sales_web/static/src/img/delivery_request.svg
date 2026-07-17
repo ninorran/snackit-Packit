@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+    <!-- truck body -->
+    <rect x="8" y="38" width="55" height="32" rx="4" fill="#7C3ABE"/>
+    <!-- truck cab -->
+    <path d="M63 50 L63 70 L88 70 L88 57 L78 38 L63 38 Z" fill="#9B59D0"/>
+    <!-- cab window -->
+    <path d="M66 42 L78 42 L85 54 L66 54 Z" fill="#D6B8F5" opacity="0.9"/>
+    <!-- wheels -->
+    <circle cx="26" cy="72" r="9" fill="#3D1A6E"/>
+    <circle cx="26" cy="72" r="5" fill="#C9A0F5"/>
+    <circle cx="74" cy="72" r="9" fill="#3D1A6E"/>
+    <circle cx="74" cy="72" r="5" fill="#C9A0F5"/>
+    <!-- axle line -->
+    <line x1="8" y1="70" x2="88" y2="70" stroke="#3D1A6E" stroke-width="2"/>
+    <!-- package on truck bed -->
+    <rect x="18" y="24" width="28" height="22" rx="3" fill="#C9A0F5"/>
+    <line x1="18" y1="35" x2="46" y2="35" stroke="#7C3ABE" stroke-width="1.5"/>
+    <line x1="32" y1="24" x2="32" y2="46" stroke="#7C3ABE" stroke-width="1.5"/>
+</svg>

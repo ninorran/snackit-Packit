@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_picking_container_user,picking.container user,model_picking_container,stock.group_stock_user,1,1,1,1
+access_batch_container_user,batch.container user,model_batch_container,stock.group_stock_user,1,1,1,1
+access_wk_manifest_import_wizard_user,wk.manifest.import.wizard user,model_wk_manifest_import_wizard,stock.group_stock_user,1,1,1,1

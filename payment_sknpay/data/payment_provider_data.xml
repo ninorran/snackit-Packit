@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo noupdate="1">
+
+    <record id="payment_provider_sknpay" model="payment.provider">
+        <field name="name">SKNPay</field>
+        <field name="code">sknpay</field>
+        <field name="state">disabled</field>
+        <field name="is_published">False</field>
+        <field name="redirect_form_view_id" ref="redirect_form"/>
+        <field name="image_128" type="base64" file="payment_sknpay/static/description/icon.png"/>
+        <field name="payment_method_ids" eval="[Command.set([
+            ref('payment.payment_method_card'),
+            ref('payment.payment_method_visa'),
+            ref('payment.payment_method_mastercard'),
+        ])]"/>
+    </record>
+
+</odoo>

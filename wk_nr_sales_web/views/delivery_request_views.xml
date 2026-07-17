@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+
+    <!-- List view -->
+    <record id="nr_delivery_request_list_view" model="ir.ui.view">
+        <field name="name">nr.delivery.request.list</field>
+        <field name="model">nr.delivery.request</field>
+        <field name="arch" type="xml">
+            <list string="Delivery Requests"
+                decoration-muted="state in ('draft', 'cancelled')"
+                decoration-warning="state in ('approved', 'awaiting_parcel', 'parcel_received', 'on_hold')"
+                decoration-info="state in ('in_transit', 'in_custom_clearance', 'passed_custom_clearance')"
+                decoration-danger="state in ('failed_custom_clearance', 'delivery_failed')"
+                decoration-success="state in ('out_for_delivery', 'delivered', 'package_returned')">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="skb_loc" string="SKB-Loc"/>
+                <field name="create_date" string="Created"/>
+                <field name="state" widget="badge"/>
+                <field name="payment_status" widget="badge"
+                    decoration-success="payment_status == 'paid'"
+                    decoration-warning="payment_status == 'partial'"
+                    decoration-danger="payment_status == 'not_paid'"
+                    optional="show"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Form view -->
+    <record id="nr_delivery_request_form_view" model="ir.ui.view">
+        <field name="name">nr.delivery.request.form</field>
+        <field name="model">nr.delivery.request</field>
+        <field name="arch" type="xml">
+            <form string="Delivery Request" duplicate="false">
+                <header>
+                    <!-- Primary flow -->
+                    <button name="action_submit" string="Approve" type="object"
+                        class="btn-primary" invisible="state != 'draft'"/>
+                    <button name="action_await_parcel" string="Await Parcel" type="object"
+                        class="btn-primary" invisible="state != 'approved'"/>
+                    <button name="action_parcel_received" string="Parcel Received" type="object"
+                        class="btn-primary" invisible="state != 'awaiting_parcel'"/>
+                    <button name="action_open_document_check" string="Create Picking" type="object"
+                        class="btn-primary" invisible="state != 'parcel_received' or active_picking_count > 0"/>
+                    <button name="action_in_transit" string="In Transit" type="object"
+                        class="btn-primary" invisible="state != 'parcel_received' or active_picking_count == 0"/>
+                    <button name="action_in_custom_clearance" string="In Custom Clearance" type="object"
+                        class="btn-primary" invisible="state != 'in_transit'"/>
+                    <button name="action_passed_custom_clearance" string="Passed Custom Clearance" type="object"
+                        class="btn-primary" invisible="state != 'in_custom_clearance'"/>
+                    <button name="action_out_for_delivery" string="Out for Delivery" type="object"
+                        class="btn-primary" invisible="state != 'passed_custom_clearance'"/>
+                    <button name="action_delivered" string="Mark Delivered" type="object"
+                        class="btn-primary" invisible="state != 'out_for_delivery'"/>
+                    <!-- Exception flow -->
+                    <button name="action_delivery_failed" string="Delivery Failed" type="object"
+                        invisible="state != 'in_transit'"/>
+                    <button name="action_failed_custom_clearance" string="Failed Custom Clearance" type="object"
+                        invisible="state != 'in_custom_clearance'"/>
+                    <button name="action_package_returned" string="Package Returned" type="object"
+                        invisible="state != 'failed_custom_clearance'"/>
+                    <!-- Hold / Resume -->
+                    <button name="action_hold" string="Put on Hold" type="object"
+                        invisible="state not in ('parcel_received', 'in_transit', 'in_custom_clearance', 'passed_custom_clearance', 'out_for_delivery')"/>
+                    <button name="action_resume" string="Resume" type="object"
+                        invisible="state != 'on_hold'"/>
+                    <!-- Cancel -->
+                    <button name="action_cancel" string="Cancel" type="object"
+                        invisible="not (state in ('draft', 'approved', 'awaiting_parcel', 'on_hold') or (state == 'parcel_received' and active_picking_count == 0) or (state == 'in_transit' and picking_cancellable))"/>
+                    <!-- Reset to Draft -->
+                    <button name="action_reset_draft" string="Reset to Draft" type="object"
+                        invisible="state not in ('cancelled', 'package_returned', 'delivery_failed')"/>
+                    <!-- Invoice -->
+                    <button name="action_create_invoice" string="Create Invoice" type="object"/>
+                    <field name="state" widget="statusbar"
+                        statusbar_visible="draft,approved,awaiting_parcel,parcel_received,in_transit,in_custom_clearance,passed_custom_clearance,out_for_delivery,delivered"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_pickings" type="object"
+                            class="oe_stat_button" icon="fa-truck"
+                            invisible="picking_count == 0">
+                            <field name="picking_count" widget="statinfo" string="Pickings"/>
+                        </button>
+                        <button name="action_view_invoices" type="object"
+                            class="oe_stat_button" icon="fa-pencil-square-o"
+                            invisible="invoice_count == 0">
+                            <field name="invoice_count" widget="statinfo" string="Invoices"/>
+                        </button>
+                        <button name="action_view_documents" type="object"
+                            class="oe_stat_button" icon="fa-files-o"
+                            invisible="document_count == 0">
+                            <field name="document_count" widget="statinfo" string="Documents"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <label for="name"/>
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="supplier_id" domain="[('supplier_rank', '>', 0)]"/>
+                            <field name="tariff_id"/>
+                        </group>
+                        <group>
+                            <field name="payment_status" widget="badge"
+                            decoration-success="payment_status == 'paid'"
+                            decoration-warning="payment_status == 'partial'"
+                            decoration-danger="payment_status == 'not_paid'"
+                            invisible="not payment_status"
+                            class="ms-auto me-2 align-self-center"/>
+                            <field name="invoice_available" widget="boolean_toggle"/>
+                            <field name="date_received"
+                            readonly="state != 'parcel_received'"
+                            invisible="not date_received"/>
+                            <field name="skb_loc" string="SKB-Loc"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Items">
+                            <field name="line_ids">
+                                <list editable="bottom">
+                                    <field name="name" string="Tracking #" width="200px"/>
+                                    <field name="quantity" string="Qty"/>
+                                    <field name="declared_value" string="D-value" widget="monetary"/>
+                                    <field name="currency_id" column_invisible="1"/>
+                                    <field name="weight" string="Weight"/>
+                                    <field name="duty_charge" string="Duty" widget="monetary"/>
+                                    <field name="csc_charge" string="CSC" widget="monetary"/>
+                                    <field name="vat_charge" string="VAT" widget="monetary"/>
+                                    <field name="shipping_charge" string="Shipping" widget="monetary"/>
+                                    <field name="insurance_charge" string="Insurance" widget="monetary"/>
+                                    <field name="delivery_charge" string="Delivery" widget="monetary"/>
+                                    <field name="description" string="Desc." width="180px"/>
+                                    <field name="notes" width="180px"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Documents">
+                            <div class="o_field_widget mb-4">
+                                <div class="o_form_label fw-bold mb-2">Supplier Invoice</div>
+                                <field name="supplier_invoice_ids" nolabel="1">
+                                    <kanban>
+                                        <field name="id"/>
+                                        <field name="name"/>
+                                        <field name="mimetype"/>
+                                        <field name="file_size"/>
+                                        <field name="create_date"/>
+                                        <templates>
+                                            <t t-name="card">
+                                                <div class="d-flex flex-column h-100">
+                                                    <div class="o_kanban_image_wrapper d-flex align-items-center justify-content-center bg-light border-bottom" style="height:90px;">
+                                                        <t t-if="record.mimetype.raw_value and record.mimetype.raw_value.startsWith('image/')">
+                                                            <img t-attf-src="/web/image/ir.attachment/#{record.id.raw_value}/datas" style="max-height:88px;max-width:100%;object-fit:contain;" t-att-alt="record.name.raw_value"/>
+                                                        </t>
+                                                        <t t-elif="record.mimetype.raw_value === 'application/pdf'">
+                                                            <i class="fa fa-file-pdf-o fa-3x text-danger" aria-label="PDF file"/>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <i class="fa fa-file-o fa-3x text-muted" aria-label="File"/>
+                                                        </t>
+                                                    </div>
+                                                    <div class="p-2 flex-grow-1">
+                                                        <div class="fw-bold text-truncate small" t-att-title="record.name.raw_value">
+                                                            <t t-out="record.name.raw_value"/>
+                                                        </div>
+                                                        <div class="text-muted" style="font-size:.7rem;">
+                                                            <t t-if="record.file_size.raw_value">
+                                                                <t t-out="record.file_size.raw_value &lt; 1048576 ? (record.file_size.raw_value / 1024).toFixed(1) + ' KB' : (record.file_size.raw_value / 1048576).toFixed(1) + ' MB'"/>
+                                                            </t>
+                                                        </div>
+                                                    </div>
+                                                    <div class="p-2 pt-0 text-end">
+                                                        <button name="action_open_preview" type="object"
+                                                            class="btn btn-sm btn-outline-primary"
+                                                            title="Preview in new tab">
+                                                            <i class="fa fa-eye me-1"/>Preview
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </t>
+                                        </templates>
+                                    </kanban>
+                                </field>
+                            </div>
+
+                            <div class="o_field_widget mb-2">
+                                <div class="o_form_label fw-bold mb-2">Shipping Documents</div>
+                                <field name="shipping_document_ids" nolabel="1">
+                                    <kanban>
+                                        <field name="id"/>
+                                        <field name="name"/>
+                                        <field name="mimetype"/>
+                                        <field name="file_size"/>
+                                        <field name="create_date"/>
+                                        <templates>
+                                            <t t-name="card">
+                                                <div class="d-flex flex-column h-100">
+                                                    <div class="o_kanban_image_wrapper d-flex align-items-center justify-content-center bg-light border-bottom" style="height:90px;">
+                                                        <t t-if="record.mimetype.raw_value and record.mimetype.raw_value.startsWith('image/')">
+                                                            <img t-attf-src="/web/image/ir.attachment/#{record.id.raw_value}/datas" style="max-height:88px;max-width:100%;object-fit:contain;" t-att-alt="record.name.raw_value"/>
+                                                        </t>
+                                                        <t t-elif="record.mimetype.raw_value === 'application/pdf'">
+                                                            <i class="fa fa-file-pdf-o fa-3x text-danger" aria-label="PDF file"/>
+                                                        </t>
+                                                        <t t-else="">
+                                                            <i class="fa fa-file-o fa-3x text-muted" aria-label="File"/>
+                                                        </t>
+                                                    </div>
+                                                    <div class="p-2 flex-grow-1">
+                                                        <div class="fw-bold text-truncate small" t-att-title="record.name.raw_value">
+                                                            <t t-out="record.name.raw_value"/>
+                                                        </div>
+                                                        <div class="text-muted" style="font-size:.7rem;">
+                                                            <t t-if="record.file_size.raw_value">
+                                                                <t t-out="record.file_size.raw_value &lt; 1048576 ? (record.file_size.raw_value / 1024).toFixed(1) + ' KB' : (record.file_size.raw_value / 1048576).toFixed(1) + ' MB'"/>
+                                                            </t>
+                                                        </div>
+                                                    </div>
+                                                    <div class="p-2 pt-0 text-end">
+                                                        <button name="action_open_preview" type="object"
+                                                            class="btn btn-sm btn-outline-primary"
+                                                            title="Preview in new tab">
+                                                            <i class="fa fa-eye me-1"/>Preview
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </t>
+                                        </templates>
+                                    </kanban>
+                                </field>
+                            </div>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action -->
+    <record id="nr_delivery_request_action" model="ir.actions.act_window">
+        <field name="name">Delivery Requests</field>
+        <field name="res_model">nr.delivery.request</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Root menu -->
+    <menuitem id="nr_sales_root_menu"
+        name="NR Sales"
+        sequence="50"/>
+
+    <!-- Menu item -->
+    <menuitem id="nr_sales_delivery_requests_menu"
+        name="Delivery Requests"
+        parent="nr_sales_root_menu"
+        action="nr_delivery_request_action"
+        sequence="20"/>
+
+    <!-- Operations parent menu -->
+    <menuitem id="nr_sales_operations_menu"
+        name="Operations"
+        parent="nr_sales_root_menu"
+        sequence="30"/>
+
+    <menuitem id="nr_sales_receipts_menu"
+        name="Receipts"
+        parent="nr_sales_operations_menu"
+        action="stock.action_picking_tree_incoming"
+        sequence="10"/>
+
+    <menuitem id="nr_sales_deliveries_menu"
+        name="Deliveries"
+        parent="nr_sales_operations_menu"
+        action="stock.action_picking_tree_outgoing"
+        sequence="20"/>
+
+    <menuitem id="nr_sales_batch_transfers_menu"
+        name="Batch Transfers"
+        parent="nr_sales_operations_menu"
+        action="stock_picking_batch.stock_picking_batch_action"
+        sequence="30"/>
+
+    <menuitem id="nr_sales_wave_transfers_menu"
+        name="Wave Transfers"
+        parent="nr_sales_operations_menu"
+        action="stock_picking_batch.action_picking_tree_wave"
+        sequence="40"/>
+
+    <!-- Smart button on res.partner form -->
+    <record id="nr_sales_partner_form_inherit" model="ir.ui.view">
+        <field name="name">res.partner.form.nr.sales</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="%(nr_delivery_request_action)d"
+                    type="action"
+                    class="oe_stat_button"
+                    icon="fa-truck"
+                    invisible="not nr_sales_customer"
+                    context="{'default_partner_id': id, 'search_default_partner_id': id}">
+                    <field name="delivery_request_count" widget="statinfo" string="Delivery Requests"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

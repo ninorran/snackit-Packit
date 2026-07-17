@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+
+    <template id="nr_sales_registration_form" name="NR Sales Registration Form">
+        <t t-call="website.layout">
+            <div class="container py-5">
+                <div class="row justify-content-center">
+                    <div class="col-md-7">
+                        <h2 class="mb-4">Registration Request</h2>
+
+                        <t t-if="errors">
+                            <div class="alert alert-danger">
+                                <ul class="mb-0">
+                                    <t t-foreach="errors.values()" t-as="msg">
+                                        <li><t t-out="msg"/></li>
+                                    </t>
+                                </ul>
+                            </div>
+                        </t>
+
+                        <form action="/nr-sales/register/submit" method="post">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                            <!-- Personal details -->
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name"
+                                    t-att-value="values.get('name', '') if values else ''"
+                                    required="required"/>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="phone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                <input type="tel" class="form-control" id="phone" name="phone"
+                                    t-att-value="values.get('phone', '') if values else ''"
+                                    required="required"/>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" name="email"
+                                    t-att-value="values.get('email', '') if values else ''"/>
+                                <div class="form-text">Optional. Must be unique if provided.</div>
+                            </div>
+
+                            <!-- Delivery address -->
+                            <hr class="my-4"/>
+                            <h5 class="mb-3">Your Address</h5>
+
+                            <div class="mb-3">
+                                <label for="street" class="form-label">Street <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="street" name="street"
+                                    t-att-value="values.get('street', '') if values else ''"
+                                    required="required"/>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="street2" class="form-label">Street 2</label>
+                                <input type="text" class="form-control" id="street2" name="street2"
+                                    t-att-value="values.get('street2', '') if values else ''"/>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="city" class="form-label">City <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="city" name="city"
+                                        t-att-value="values.get('city', '') if values else ''"
+                                        required="required"/>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="zip" class="form-label">ZIP / Postal Code</label>
+                                    <input type="text" class="form-control" id="zip" name="zip"
+                                        t-att-value="values.get('zip', '') if values else ''"/>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="country_id" class="form-label">Country <span class="text-danger">*</span></label>
+                                <select class="form-select" id="country_id" name="country_id" required="required">
+                                    <option value="">-- Select Country --</option>
+                                    <t t-foreach="countries" t-as="country">
+                                        <option t-att-value="country.id"
+                                            t-att-selected="'selected' if values and str(country.id) == values.get('country_id', '') else None">
+                                            <t t-out="country.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+
+                            <div class="mb-3" id="state_div">
+                                <label for="state_id" class="form-label">State / Province</label>
+                                <select class="form-select" id="state_id" name="state_id">
+                                    <option value="">-- Select State --</option>
+                                    <t t-foreach="states" t-as="state">
+                                        <option t-att-value="state.id"
+                                            t-att-selected="'selected' if values and str(state.id) == values.get('state_id', '') else None">
+                                            <t t-out="state.name"/>
+                                        </option>
+                                    </t>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary mt-2">Register</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                (function () {
+                    var countrySelect = document.getElementById('country_id');
+                    var stateSelect = document.getElementById('state_id');
+
+                    function loadStates(countryId, selectedStateId) {
+                        stateSelect.innerHTML = '<option value="">-- Select State --</option>';
+                        if (!countryId) return;
+                        fetch('/nr-sales/register/states', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({jsonrpc: '2.0', method: 'call', params: {country_id: countryId}})
+                        })
+                        .then(function(r){ return r.json(); })
+                        .then(function(data){
+                            var states = data.result || [];
+                            states.forEach(function(s){
+                                var opt = document.createElement('option');
+                                opt.value = s.id;
+                                opt.textContent = s.name;
+                                if (String(s.id) === String(selectedStateId)) opt.selected = true;
+                                stateSelect.appendChild(opt);
+                            });
+                        });
+                    }
+
+                    countrySelect.addEventListener('change', function(){
+                        loadStates(this.value, null);
+                    });
+
+                    // On page load (validation error re-render), reload states for pre-selected country
+                    var initialCountry = countrySelect.value;
+                    var initialState = stateSelect.value;
+                    if (initialCountry) {
+                        loadStates(initialCountry, initialState);
+                    }
+                })();
+            </script>
+        </t>
+    </template>
+
+    <template id="nr_sales_registration_success" name="NR Sales Registration Success">
+        <t t-call="website.layout">
+            <div class="container py-5 text-center">
+                <div class="row justify-content-center">
+                    <div class="col-md-6">
+                        <i class="fa fa-check-circle fa-4x text-success mb-3"/>
+                        <h2>Registration Successful!</h2>
+                        <p class="lead">
+                            Thank you, <strong><t t-out="partner_name"/></strong>. Your registration has been received.
+                        </p>
+                        <a href="/" class="btn btn-primary mt-3">Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </t>
+    </template>
+
+
+    <record id="website_menu_nr_sales_register" model="website.menu">
+        <field name="name">Register</field>
+        <field name="url">/nr-sales/register</field>
+        <field name="parent_id" ref="website.main_menu"/>
+        <field name="sequence">50</field>
+    </record>
+
+</odoo>

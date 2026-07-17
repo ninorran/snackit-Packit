@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+
+    <record id="nr_sales_billing_wizard_form_view" model="ir.ui.view">
+        <field name="name">nr.nr_sales_billing_wizard.form</field>
+        <field name="model">nr.nr_sales_billing_wizard</field>
+        <field name="arch" type="xml">
+            <form string="NR Sales Bill">
+                <group>
+                    <field name="request_id" readonly="1"/>
+                    <field name="tariff_id"/>
+                    <field name="currency_id" invisible="1"/>
+                </group>
+                <field name="line_ids">
+                    <list editable="bottom" no_open="0" create="0" delete="1">
+                        <field name="item_name" readonly="1"/>
+                        <field name="product_description" string="Product Description"/>
+                        <field name="quantity" string="Qty" readonly="1"/>
+                        <field name="declared_value" string="D-Value" widget="monetary"/>
+                        <field name="weight" string="Weight" readonly="1"/>
+                        <field name="duty_charge" string="Duty" readonly="1" widget="monetary"/>
+                        <field name="csc_charge" string="CSC" readonly="1" widget="monetary"/>
+                        <field name="vat_charge" string="VAT" readonly="1" widget="monetary"/>
+                        <field name="shipping_charge" string="Shipping" widget="monetary"/>
+                        <field name="insurance_charge" string="Insurance" widget="monetary"/>
+                        <field name="delivery_charge" string="Delivery" widget="monetary"/>
+                        <field name="total" widget="monetary" readonly="1"/>
+                        <field name="currency_id" column_invisible="1"/>
+                    </list>
+                </field>
+                <footer>
+                    <button name="action_confirm" string="Confirm"
+                        type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

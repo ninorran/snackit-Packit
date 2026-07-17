@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+    <record id="view_wk_manifest_import_wizard_form" model="ir.ui.view">
+        <field name="name">wk.manifest.import.wizard.form</field>
+        <field name="model">wk.manifest.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import Manifest XML">
+                <group>
+                    <field name="file_name" placeholder="e.g. WH_OUT_00048.xml"/>
+                    <field name="file_data" filename="file_name"/>
+                </group>
+                <footer>
+                    <button name="action_import" type="object" string="Import" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_wk_manifest_import_wizard" model="ir.actions.act_window">
+        <field name="name">Import Manifest XML</field>
+        <field name="res_model">wk.manifest.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_wk_manifest_import_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+</odoo>

@@ -1,0 +1,585 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo noupdate="1">
+
+    <!-- ======================================================
+         Partner-level templates (model: res.partner)
+         ====================================================== -->
+
+    <!-- 1. Registration -->
+    <record id="wa_tmpl_nr_registration" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: Registration</field>
+        <field name="template_name">nr_sales_registration</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="phone_field">phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Thank you for registering with NR Sales. Your request has been received and is currently under review. We will notify you once your account has been approved.
+
+For any queries, please contact us at {{2}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {
+                'name': '{{1}}',
+                'line_type': 'body',
+                'field_type': 'field',
+                'field_name': 'name',
+                'demo_value': 'John Doe',
+            }),
+            (0, 0, {
+                'name': '{{2}}',
+                'line_type': 'body',
+                'field_type': 'free_text',
+                'demo_value': '+1 (800) 000-0000',
+            }),
+        ]"/>
+    </record>
+
+    <!-- 2. Portal Access Granted -->
+    <record id="wa_tmpl_nr_portal_invite" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: Portal Access Granted</field>
+        <field name="template_name">nr_sales_portal_invite</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="phone_field">phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your NR Sales portal access has been set up.
+
+Your NR Sales ID: *{{2}}*
+
+You should receive a separate email with your login details. Please log in to activate your account.
+
+For any queries, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {
+                'name': '{{1}}',
+                'line_type': 'body',
+                'field_type': 'field',
+                'field_name': 'name',
+                'demo_value': 'John Doe',
+            }),
+            (0, 0, {
+                'name': '{{2}}',
+                'line_type': 'body',
+                'field_type': 'field',
+                'field_name': 'nr_sales_uid',
+                'demo_value': 'NRSUID00001',
+            }),
+            (0, 0, {
+                'name': '{{3}}',
+                'line_type': 'body',
+                'field_type': 'free_text',
+                'demo_value': '+1 (800) 000-0000',
+            }),
+        ]"/>
+    </record>
+
+    <!-- 3. Account Activated -->
+    <record id="wa_tmpl_nr_account_active" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: Account Activated</field>
+        <field name="template_name">nr_sales_account_active</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="phone_field">phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your NR Sales account is now active!
+
+Your NR Sales ID: *{{2}}*
+Login Email: {{3}}
+
+You can now create and track your delivery requests through the portal.
+
+For any queries, please contact us at {{4}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {
+                'name': '{{1}}',
+                'line_type': 'body',
+                'field_type': 'field',
+                'field_name': 'name',
+                'demo_value': 'John Doe',
+            }),
+            (0, 0, {
+                'name': '{{2}}',
+                'line_type': 'body',
+                'field_type': 'field',
+                'field_name': 'nr_sales_uid',
+                'demo_value': 'NRSUID00001',
+            }),
+            (0, 0, {
+                'name': '{{3}}',
+                'line_type': 'body',
+                'field_type': 'field',
+                'field_name': 'email',
+                'demo_value': 'john.doe@example.com',
+            }),
+            (0, 0, {
+                'name': '{{4}}',
+                'line_type': 'body',
+                'field_type': 'free_text',
+                'demo_value': '+1 (800) 000-0000',
+            }),
+        ]"/>
+    </record>
+
+    <!-- ======================================================
+         DR-level templates (model: nr.delivery.request)
+         Variables: {{1}} customer name, {{2}} DR reference, {{3}} contact details
+         ====================================================== -->
+
+    <!-- 4. DR Approved -->
+    <record id="wa_tmpl_nr_dr_approved" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Approved</field>
+        <field name="template_name">nr_sales_dr_approved</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your Delivery Request *{{2}}* has been *approved*.
+
+Track your request: {{4}}
+
+For any queries, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 5. DR Awaiting Parcel -->
+    <record id="wa_tmpl_nr_dr_awaiting_parcel" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Awaiting Parcel</field>
+        <field name="template_name">nr_sales_dr_awaiting_parcel</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+We are now awaiting your parcel for Delivery Request *{{2}}*.
+
+Please ensure your parcel is shipped to the designated address.
+
+Track your request: {{4}}
+
+For any queries, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 6. DR Parcel Received -->
+    <record id="wa_tmpl_nr_dr_parcel_received" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Parcel Received</field>
+        <field name="template_name">nr_sales_dr_parcel_received</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+We have received your parcel for Delivery Request *{{2}}*.
+
+Track your request: {{4}}
+
+For any queries, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 7. DR In Transit -->
+    <record id="wa_tmpl_nr_dr_in_transit" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR In Transit</field>
+        <field name="template_name">nr_sales_dr_in_transit</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your parcel for Delivery Request *{{2}}* is now *in transit*.
+
+Track your request: {{4}}
+
+For any queries, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 8. DR In Custom Clearance -->
+    <record id="wa_tmpl_nr_dr_in_custom_clearance" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR In Custom Clearance</field>
+        <field name="template_name">nr_sales_dr_in_custom_clearance</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your parcel for Delivery Request *{{2}}* is currently undergoing *custom clearance*.
+
+Track your request: {{4}}
+
+For any queries, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 9. DR Passed Custom Clearance -->
+    <record id="wa_tmpl_nr_dr_passed_custom_clearance" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Passed Custom Clearance</field>
+        <field name="template_name">nr_sales_dr_passed_custom_clearance</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your parcel for Delivery Request *{{2}}* has *passed custom clearance*.
+
+Track your request: {{4}}
+
+For any queries, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 10. DR Failed Custom Clearance -->
+    <record id="wa_tmpl_nr_dr_failed_custom_clearance" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Failed Custom Clearance</field>
+        <field name="template_name">nr_sales_dr_failed_custom_clearance</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your parcel for Delivery Request *{{2}}* has *failed custom clearance*.
+
+Track your request: {{4}}
+
+Please contact us at {{3}} for further assistance.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 11. DR Out for Delivery -->
+    <record id="wa_tmpl_nr_dr_out_for_delivery" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Out for Delivery</field>
+        <field name="template_name">nr_sales_dr_out_for_delivery</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your parcel for Delivery Request *{{2}}* is now *out for delivery*.
+
+Track your request: {{4}}
+
+For any queries, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 12. DR Delivered -->
+    <record id="wa_tmpl_nr_dr_delivered" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Delivered</field>
+        <field name="template_name">nr_sales_dr_delivered</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your parcel for Delivery Request *{{2}}* has been *delivered* successfully.
+
+Track your request: {{4}}
+
+For any queries, please contact us at {{3}}.
+
+Thank you for choosing NR Sales.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 13. DR Delivery Failed -->
+    <record id="wa_tmpl_nr_dr_delivery_failed" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Delivery Failed</field>
+        <field name="template_name">nr_sales_dr_delivery_failed</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+We were unable to deliver your parcel for Delivery Request *{{2}}*.
+
+Track your request: {{4}}
+
+Please contact us at {{3}} to reschedule or for further assistance.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 14. DR Package Returned -->
+    <record id="wa_tmpl_nr_dr_package_returned" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Package Returned</field>
+        <field name="template_name">nr_sales_dr_package_returned</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your parcel for Delivery Request *{{2}}* has been *returned*.
+
+Track your request: {{4}}
+
+Please contact us at {{3}} for further information.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 15. DR On Hold -->
+    <record id="wa_tmpl_nr_dr_on_hold" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR On Hold</field>
+        <field name="template_name">nr_sales_dr_on_hold</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your Delivery Request *{{2}}* has been placed *on hold*.
+
+Track your request: {{4}}
+
+For any queries, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 16. DR Cancelled -->
+    <record id="wa_tmpl_nr_dr_cancelled" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: DR Cancelled</field>
+        <field name="template_name">nr_sales_dr_cancelled</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your Delivery Request *{{2}}* has been *cancelled*.
+
+If you have any questions, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+        ]"/>
+    </record>
+
+    <!-- 17. Request: Supplier Invoice -->
+    <record id="wa_tmpl_nr_request_supplier_invoice" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: Request Supplier Invoice</field>
+        <field name="template_name">nr_sales_request_supplier_invoice</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+We have not yet received the Supplier Invoice for your Delivery Request *{{2}}*.
+
+Kindly submit the required document at your earliest convenience to avoid delays.
+
+Upload via portal: {{4}}
+
+For assistance, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 18. Request: Purchase Invoice -->
+    <record id="wa_tmpl_nr_request_purchase_invoice" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: Request Purchase Invoice</field>
+        <field name="template_name">nr_sales_request_purchase_invoice</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+Your Delivery Request *{{2}}* cannot be processed without a Purchase Invoice.
+
+Please submit the Purchase Invoice at your earliest convenience.
+
+Upload via portal: {{4}}
+
+For assistance, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+    <!-- 19. Request: Shipping Documents -->
+    <record id="wa_tmpl_nr_request_shipping_documents" model="whatsapp.template" forcecreate="0">
+        <field name="name">NR Sales: Request Shipping Documents</field>
+        <field name="template_name">nr_sales_request_shipping_documents</field>
+        <field name="lang_code">en</field>
+        <field name="template_type">utility</field>
+        <field name="model_id" ref="wk_nr_sales_web.model_nr_delivery_request"/>
+        <field name="phone_field">partner_id.phone</field>
+        <field name="footer_text">Write 'stop' to stop receiving messages</field>
+        <field name="body">Hello {{1}},
+
+We have not yet received the Shipping Documents for your Delivery Request *{{2}}*.
+
+Kindly submit the required documents at your earliest convenience to avoid delays.
+
+Upload via portal: {{4}}
+
+For assistance, please contact us at {{3}}.
+
+Thank you.</field>
+        <field name="variable_ids" eval="[
+            (5, 0, 0),
+            (0, 0, {'name': '{{1}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'partner_id.name', 'demo_value': 'John Doe'}),
+            (0, 0, {'name': '{{2}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'name', 'demo_value': 'DR00001'}),
+            (0, 0, {'name': '{{3}}', 'line_type': 'body', 'field_type': 'free_text', 'demo_value': '+1 (800) 000-0000'}),
+            (0, 0, {'name': '{{4}}', 'line_type': 'body', 'field_type': 'field', 'field_name': 'access_url', 'demo_value': '/my/delivery-requests/1'}),
+        ]"/>
+    </record>
+
+</odoo>

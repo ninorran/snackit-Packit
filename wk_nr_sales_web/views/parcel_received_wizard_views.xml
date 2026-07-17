@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+
+    <record id="nr_parcel_received_wizard_form_view" model="ir.ui.view">
+        <field name="name">nr.parcel.received.wizard.form</field>
+        <field name="model">nr.parcel.received.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Parcel Received">
+                <group>
+                    <field name="request_id" readonly="1"/>
+                    <field name="date_received"/>
+                </group>
+                <footer>
+                    <button name="action_confirm" string="Confirm"
+                        type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>
