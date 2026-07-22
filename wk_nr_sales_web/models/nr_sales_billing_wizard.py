@@ -20,12 +20,12 @@ class NrSalesBillingWizard(models.TransientModel):
     tariff_id = fields.Many2one(
         'nr.tariff.config',
         string='Tariff Options',
-        default=lambda self: self.env['nr.tariff.config'].search([], limit=1),
+        default=lambda self: self.env['nr.tariff.config'].search(
+            [('company_id', '=', self.env.company.id)], limit=1
+        ),
     )
-    currency_id = fields.Many2one(
-        'res.currency',
-        default=lambda self: self.env.company.currency_id,
-    )
+    company_id = fields.Many2one(related='request_id.company_id')
+    currency_id = fields.Many2one(related='request_id.company_id.currency_id')
     line_ids = fields.One2many('nr.nr_sales_billing_line', 'wizard_id', string='Lines')
 
     def _populate_lines(self):
@@ -72,6 +72,7 @@ class NrSalesBillingWizard(models.TransientModel):
 
         invoice = self.env['account.move'].create({
             'move_type': 'out_invoice',
+            'company_id': self.request_id.company_id.id,
             'partner_id': self.request_id.partner_id.id,
             'invoice_origin': self.request_id.name,
             'invoice_line_ids': invoice_line_vals,

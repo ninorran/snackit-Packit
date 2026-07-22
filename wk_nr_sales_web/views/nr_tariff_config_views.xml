@@ -10,6 +10,7 @@
         <field name="arch" type="xml">
             <list string="Tariff Configurations">
                 <field name="name"/>
+                <field name="company_id" groups="base.group_multi_company"/>
                 <field name="duty_charge" string="Duty (%)"/>
                 <field name="csc_charge" string="CSC (%)"/>
                 <field name="vat_charge" string="VAT Charge (%)"/>
@@ -30,6 +31,9 @@
                         <label for="name"/>
                         <h1><field name="name" placeholder="Tariff Name..."/></h1>
                     </div>
+                    <group>
+                        <field name="company_id" groups="base.group_multi_company"/>
+                    </group>
                     <group string="Charge Rates">
                         <group string="Tax &amp; Duty">
                             <field name="duty_charge" string="Duty Charge (%)"/>

@@ -104,9 +104,10 @@
                     </div>
                     <group>
                         <group>
+                            <field name="company_id" groups="base.group_multi_company"/>
                             <field name="partner_id"/>
                             <field name="supplier_id" domain="[('supplier_rank', '>', 0)]"/>
-                            <field name="tariff_id"/>
+                            <field name="tariff_id" domain="[('company_id', '=', company_id)]"/>
                         </group>
                         <group>
                             <field name="payment_status" widget="badge"
