@@ -11,6 +11,20 @@
                     <div class="col-md-7">
                         <h2 class="mb-4">Registration Request</h2>
 
+                        <t t-if="already_registered">
+                            <div class="alert alert-warning d-flex align-items-start gap-3" role="alert">
+                                <i class="fa fa-exclamation-triangle fa-2x mt-1 text-warning"/>
+                                <div>
+                                    <h5 class="alert-heading mb-1">Already Registered</h5>
+                                    <p class="mb-2">
+                                        <strong><t t-out="partner_name"/></strong>, you are already registered for NR Sales.
+                                    </p>
+                                    <a href="/my" class="btn btn-sm btn-warning">Go to My Account</a>
+                                    <a href="/" class="btn btn-sm btn-outline-secondary ms-2">Back to Home</a>
+                                </div>
+                            </div>
+                        </t>
+
                         <t t-if="errors">
                             <div class="alert alert-danger">
                                 <ul class="mb-0">
@@ -21,7 +35,7 @@
                             </div>
                         </t>
 
-                        <form action="/nr-sales/register/submit" method="post">
+                        <form t-if="not already_registered" action="/nr-sales/register/submit" method="post">
                             <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
                             <!-- Personal details -->

@@ -20,19 +20,21 @@ class NrCreateInvoiceWizard(models.TransientModel):
         ('other', 'For Other Purposes'),
     ], string='Invoice Type', required=True, default='nr_sales_bill')
 
-    currency_id = fields.Many2one(
-        'res.currency',
-        default=lambda self: self.env.company.currency_id,
-    )
+    company_id = fields.Many2one(related='request_id.company_id')
+    currency_id = fields.Many2one(related='request_id.company_id.currency_id')
     amount = fields.Monetary(string='Amount')
     other_description = fields.Text(string='Description')
 
     def action_confirm(self):
         self.ensure_one()
         if self.invoice_type == 'other':
-            invoice = self.env['account.move'].create({
+            company = self.request_id.company_id
+            invoice = self.env['account.move'].with_company(company).create({
                 'move_type': 'out_invoice',
+                'nr_invoice_type': 'other',
+                'company_id': company.id,
                 'partner_id': self.request_id.partner_id.id,
+                'invoice_date': fields.Date.today(),
                 'invoice_origin': self.request_id.name,
                 'invoice_line_ids': [(0, 0, {
                     'name': self.other_description or self.request_id.name,

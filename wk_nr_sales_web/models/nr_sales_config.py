@@ -17,6 +17,10 @@ class NrSalesConfig(models.Model):
     _description = 'NR Sales Configuration'
 
     name = fields.Char(default='NR Sales Configuration')
+    company_id = fields.Many2one(
+        'res.company', string='Company', required=True,
+        default=lambda self: self.env.company,
+    )
     enable = fields.Boolean(string='Active', default=True)
     delivery_product_id = fields.Many2one(
         'product.product',
@@ -36,14 +40,18 @@ class NrSalesConfig(models.Model):
         string='WhatsApp Events',
     )
 
-    @api.constrains('enable')
+    @api.constrains('enable', 'company_id')
     def _check_single_enabled(self):
         for rec in self:
             if rec.enable:
-                others = self.search([('id', '!=', rec.id), ('enable', '=', True)])
+                others = self.search([
+                    ('id', '!=', rec.id),
+                    ('enable', '=', True),
+                    ('company_id', '=', rec.company_id.id),
+                ])
                 if others:
                     raise ValidationError(
-                        _('Only one configuration can be enabled at a time. '
+                        _('Only one configuration can be enabled per company. '
                           'Please disable "%s" before enabling this one.') % others[0].name
                     )
 
@@ -57,5 +65,8 @@ class NrSalesConfig(models.Model):
 
     @classmethod
     def _get_config(cls, env):
-        config = env['nr.sales.config'].search([('enable', '=', True)], limit=1)
-        return config or env['nr.sales.config'].create({})
+        config = env['nr.sales.config'].search([
+            ('enable', '=', True),
+            ('company_id', '=', env.company.id),
+        ], limit=1)
+        return config or env['nr.sales.config'].create({'company_id': env.company.id})

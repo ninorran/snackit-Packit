@@ -15,6 +15,10 @@ class NrTariffConfig(models.Model):
     _description = 'NR Sales Tariff Configuration'
 
     name = fields.Char(required=True)
+    company_id = fields.Many2one(
+        'res.company', string='Company', required=True,
+        default=lambda self: self.env.company,
+    )
     duty_charge = fields.Float(string='Duty Charge (%)', digits=(16, 4))
     csc_charge = fields.Float(string='CSC Charge (%)', digits=(16, 4))
     vat_charge = fields.Float(string='VAT Charge (%)', digits=(16, 4))

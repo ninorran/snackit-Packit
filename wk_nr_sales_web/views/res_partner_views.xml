@@ -18,14 +18,21 @@
         </field>
     </record>
 
-    <!-- NR Sales Customers search view (inherits base partner search) -->
-    <record id="nr_sales_partner_search_view" model="ir.ui.view">
-        <field name="name">nr.sales.partner.search</field>
+    <!-- NR Sales Customers dedicated search view -->
+    <record id="nr_sales_partner_standalone_search_view" model="ir.ui.view">
+        <field name="name">nr.sales.partner.standalone.search</field>
         <field name="model">res.partner</field>
-        <field name="inherit_id" ref="base.view_res_partner_filter"/>
         <field name="arch" type="xml">
-            <xpath expr="//filter[@name='inactive']" position="before">
+            <search string="Registrations">
+
+                <!-- Search fields -->
+                <field name="name" string="Name"/>
                 <field name="nr_sales_uid" string="NR Sales ID"/>
+                <field name="phone" string="Phone"/>
+                <field name="email" string="Email"/>
+                <field name="city" string="City"/>
+
+                <!-- ── Registration Status filters ── -->
                 <separator/>
                 <filter name="nr_state_registration_request" string="Registration Request"
                     domain="[('nr_sales_state', '=', 'registration_request')]"/>
@@ -37,12 +44,26 @@
                     domain="[('nr_sales_state', '=', 'active')]"/>
                 <filter name="nr_state_revoked" string="Revoked"
                     domain="[('nr_sales_state', '=', 'revoked')]"/>
+
+                <!-- ── Date filters ── -->
                 <separator/>
-            </xpath>
-            <xpath expr="//group[@name='group_by']" position="inside">
-                <filter name="group_by_nr_sales_state" string="Customer Status"
-                    context="{'group_by': 'nr_sales_state'}"/>
-            </xpath>
+                <filter name="filter_registered_this_month"
+                    string="Registered This Month"
+                    domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-01'))]"/>
+
+                <!-- ── Group By ── -->
+                <group>
+                    <filter name="group_by_nr_sales_state" string="Customer Status"
+                        context="{'group_by': 'nr_sales_state'}"/>
+                    <filter name="group_by_country" string="Country"
+                        context="{'group_by': 'country_id'}"/>
+                    <filter name="group_by_city" string="City"
+                        context="{'group_by': 'city'}"/>
+                    <filter name="group_by_month" string="Registration Month"
+                        context="{'group_by': 'create_date:month'}"/>
+                </group>
+
+            </search>
         </field>
     </record>
 
@@ -149,6 +170,7 @@
         <field name="view_mode">list,form</field>
         <field name="domain">[('nr_sales_customer', '=', True)]</field>
         <field name="context">{'default_nr_sales_customer': True}</field>
+        <field name="search_view_id" ref="nr_sales_partner_standalone_search_view"/>
         <field name="view_ids" eval="[
             (5, 0, 0),
             (0, 0, {'view_mode': 'list', 'view_id': ref('nr_sales_partner_list_view')}),

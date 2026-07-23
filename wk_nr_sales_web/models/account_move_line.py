@@ -10,6 +10,15 @@
 from odoo import fields, models
 
 
+class AccountMove(models.Model):
+    _inherit = 'account.move'
+
+    nr_invoice_type = fields.Selection([
+        ('nr_sales_bill', 'NR Sales Bill'),
+        ('other', 'Other Purpose'),
+    ], string='NR Invoice Type', index=True)
+
+
 class AccountMoveLine(models.Model):
     _inherit = 'account.move.line'
 

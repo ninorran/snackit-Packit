@@ -19,8 +19,12 @@ class NrDeliveryRequest(models.Model):
     _allow_copy = False
 
     name = fields.Char(string='Reference', readonly=True, default='New', tracking=True)
+    company_id = fields.Many2one(
+        'res.company', string='Company', required=True,
+        default=lambda self: self.env.company, tracking=True,
+    )
     partner_id = fields.Many2one('res.partner', string='Customer', required=True, tracking=True)
-    currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
+    currency_id = fields.Many2one(related='company_id.currency_id', depends=['company_id'], store=True)
     state = fields.Selection(
         [
             ('draft', 'Draft'),
@@ -45,7 +49,9 @@ class NrDeliveryRequest(models.Model):
     tariff_id = fields.Many2one(
         'nr.tariff.config',
         string='Tariff Options',
-        default=lambda self: self.env['nr.tariff.config'].search([], limit=1),
+        default=lambda self: self.env['nr.tariff.config'].search(
+            [('company_id', '=', self.env.company.id)], limit=1
+        ),
     )
     skb_loc = fields.Char(string='SKB-Loc')
     line_ids = fields.One2many('nr.delivery.request.line', 'request_id', string='Items')
@@ -95,10 +101,15 @@ class NrDeliveryRequest(models.Model):
         for rec in self:
             rec.invoice_count = len(rec.invoice_ids)
 
-    @api.depends('invoice_ids', 'invoice_ids.payment_state', 'invoice_ids.state')
+    @api.depends('invoice_ids', 'invoice_ids.payment_state', 'invoice_ids.state',
+                 'invoice_ids.move_type', 'invoice_ids.nr_invoice_type')
     def _compute_payment_status(self):
         for rec in self:
-            invoices = rec.invoice_ids.filtered(lambda m: m.state == 'posted')
+            invoices = rec.invoice_ids.filtered(
+                lambda m: m.state == 'posted'
+                and m.move_type == 'out_invoice'
+                and m.nr_invoice_type == 'nr_sales_bill'
+            )
             if not invoices:
                 rec.payment_status = False
             elif all(m.payment_state in ('paid', 'in_payment', 'reversed') for m in invoices):
@@ -160,7 +171,7 @@ class NrDeliveryRequest(models.Model):
         product = config.delivery_product_id
 
         warehouse = self.env['stock.warehouse'].search(
-            [('company_id', '=', self.env.company.id)], limit=1
+            [('company_id', '=', self.company_id.id)], limit=1
         )
         picking_type = warehouse.out_type_id
 
@@ -194,6 +205,7 @@ class NrDeliveryRequest(models.Model):
             'picking_type_id': picking_type.id,
             'partner_id': self.partner_id.id,
             'origin': self.name,
+            'company_id': self.company_id.id,
             'location_id': picking_type.default_location_src_id.id,
             'location_dest_id': picking_type.default_location_dest_id.id,
             'move_ids': [(0, 0, move_vals)],
@@ -263,9 +275,12 @@ class NrDeliveryRequest(models.Model):
     def create(self, vals_list):
         for vals in vals_list:
             if vals.get('name', 'New') == 'New':
-                vals['name'] = self.env['ir.sequence'].sudo().next_by_code('nr.delivery.request') or 'New'
-        records = super().create(vals_list)
-        return records
+                company_id = vals.get('company_id') or self.env.company.id
+                vals['name'] = (
+                    self.env['ir.sequence'].with_company(company_id).sudo()
+                    .next_by_code('nr.delivery.request') or 'New'
+                )
+        return super().create(vals_list)
 
     def action_submit(self):
         self.ensure_one()
