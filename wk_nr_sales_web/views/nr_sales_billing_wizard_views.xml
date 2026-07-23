@@ -24,8 +24,8 @@
                         <field name="duty_charge" string="Duty" readonly="1" widget="monetary"/>
                         <field name="csc_charge" string="CSC" readonly="1" widget="monetary"/>
                         <field name="vat_charge" string="VAT" readonly="1" widget="monetary"/>
-                        <field name="shipping_charge" string="Shipping" widget="monetary"/>
-                        <field name="insurance_charge" string="Insurance" widget="monetary"/>
+                        <field name="shipping_charge" string="Shipping" widget="monetary" readonly="1"/>
+                        <field name="insurance_charge" string="Insurance" widget="monetary" readonly="1"/>
                         <field name="delivery_charge" string="Delivery" widget="monetary"/>
                         <field name="total" widget="monetary" readonly="1"/>
                         <field name="currency_id" column_invisible="1"/>

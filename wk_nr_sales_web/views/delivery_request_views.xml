@@ -132,11 +132,11 @@
                                     <field name="declared_value" string="D-value" widget="monetary"/>
                                     <field name="currency_id" column_invisible="1"/>
                                     <field name="weight" string="Weight"/>
-                                    <field name="duty_charge" string="Duty" widget="monetary"/>
-                                    <field name="csc_charge" string="CSC" widget="monetary"/>
-                                    <field name="vat_charge" string="VAT" widget="monetary"/>
-                                    <field name="shipping_charge" string="Shipping" widget="monetary"/>
-                                    <field name="insurance_charge" string="Insurance" widget="monetary"/>
+                                    <field name="duty_charge" string="Duty" widget="monetary" readonly="1"/>
+                                    <field name="csc_charge" string="CSC" widget="monetary" readonly="1"/>
+                                    <field name="vat_charge" string="VAT" widget="monetary" readonly="1"/>
+                                    <field name="shipping_charge" string="Shipping" widget="monetary" readonly="1"/>
+                                    <field name="insurance_charge" string="Insurance" widget="monetary" readonly="1"/>
                                     <field name="delivery_charge" string="Delivery" widget="monetary"/>
                                     <field name="description" string="Desc." width="180px"/>
                                     <field name="notes" width="180px"/>
@@ -245,12 +245,119 @@
         </field>
     </record>
 
+    <!-- Search view -->
+    <record id="nr_delivery_request_search_view" model="ir.ui.view">
+        <field name="name">nr.delivery.request.search</field>
+        <field name="model">nr.delivery.request</field>
+        <field name="arch" type="xml">
+            <search string="Delivery Requests">
+
+                <!-- Search fields -->
+                <field name="name" string="Reference"/>
+                <field name="partner_id" string="Customer"/>
+                <field name="skb_loc" string="SKB-Loc"/>
+                <field name="supplier_id" string="Supplier"/>
+
+                <!-- ── Status filters ── -->
+                <separator/>
+                <filter name="filter_draft"
+                    string="Draft"
+                    domain="[('state', '=', 'draft')]"/>
+                <filter name="filter_approved"
+                    string="Approved"
+                    domain="[('state', '=', 'approved')]"/>
+                <filter name="filter_awaiting_parcel"
+                    string="Awaiting Parcel"
+                    domain="[('state', '=', 'awaiting_parcel')]"/>
+                <filter name="filter_parcel_received"
+                    string="Parcel Received"
+                    domain="[('state', '=', 'parcel_received')]"/>
+                <filter name="filter_in_transit"
+                    string="In Transit"
+                    domain="[('state', '=', 'in_transit')]"/>
+                <filter name="filter_in_custom_clearance"
+                    string="In Custom Clearance"
+                    domain="[('state', '=', 'in_custom_clearance')]"/>
+                <filter name="filter_passed_custom_clearance"
+                    string="Passed Custom Clearance"
+                    domain="[('state', '=', 'passed_custom_clearance')]"/>
+                <filter name="filter_failed_custom_clearance"
+                    string="Failed Custom Clearance"
+                    domain="[('state', '=', 'failed_custom_clearance')]"/>
+                <filter name="filter_out_for_delivery"
+                    string="Out for Delivery"
+                    domain="[('state', '=', 'out_for_delivery')]"/>
+                <filter name="filter_delivered"
+                    string="Delivered"
+                    domain="[('state', '=', 'delivered')]"/>
+                <filter name="filter_delivery_failed"
+                    string="Delivery Failed"
+                    domain="[('state', '=', 'delivery_failed')]"/>
+                <filter name="filter_package_returned"
+                    string="Package Returned"
+                    domain="[('state', '=', 'package_returned')]"/>
+                <filter name="filter_on_hold"
+                    string="On Hold"
+                    domain="[('state', '=', 'on_hold')]"/>
+                <filter name="filter_cancelled"
+                    string="Cancelled"
+                    domain="[('state', '=', 'cancelled')]"/>
+
+                <!-- ── Payment Status filters ── -->
+                <separator/>
+                <filter name="filter_not_paid"
+                    string="Not Paid"
+                    domain="[('payment_status', '=', 'not_paid')]"/>
+                <filter name="filter_partial_paid"
+                    string="Partial Paid"
+                    domain="[('payment_status', '=', 'partial')]"/>
+                <filter name="filter_paid"
+                    string="Paid"
+                    domain="[('payment_status', '=', 'paid')]"/>
+
+                <!-- ── Date filters ── -->
+                <separator/>
+                <filter name="filter_today"
+                    string="Created Today"
+                    domain="[('create_date', '&gt;=', datetime.datetime.now().strftime('%Y-%m-%d 00:00:00'))]"/>
+                <filter name="filter_this_week"
+                    string="Created This Week"
+                    domain="[('create_date', '&gt;=', (datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())).strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_this_month"
+                    string="Created This Month"
+                    domain="[('create_date', '&gt;=', datetime.date.today().strftime('%Y-%m-01'))]"/>
+
+                <!-- ── Group By ── -->
+                <group string="Group By" expand="0">
+                    <filter name="group_by_state"
+                        string="Status"
+                        context="{'group_by': 'state'}"/>
+                    <filter name="group_by_partner"
+                        string="Customer"
+                        context="{'group_by': 'partner_id'}"/>
+                    <filter name="group_by_payment_status"
+                        string="Payment Status"
+                        context="{'group_by': 'payment_status'}"/>
+                    <filter name="group_by_company"
+                        string="Company"
+                        context="{'group_by': 'company_id'}"
+                        groups="base.group_multi_company"/>
+                    <filter name="group_by_month"
+                        string="Creation Month"
+                        context="{'group_by': 'create_date:month'}"/>
+                </group>
+
+            </search>
+        </field>
+    </record>
+
     <!-- Action -->
     <record id="nr_delivery_request_action" model="ir.actions.act_window">
         <field name="name">Delivery Requests</field>
         <field name="res_model">nr.delivery.request</field>
         <field name="view_mode">list,form</field>
         <field name="context">{}</field>
+        <field name="search_view_id" ref="nr_delivery_request_search_view"/>
     </record>
 
     <!-- Root menu -->
