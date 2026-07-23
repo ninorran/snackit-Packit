@@ -19,8 +19,8 @@
     </record>
 
     <!-- NR Sales Customers dedicated search view -->
-    <record id="nr_sales_partner_search_view" model="ir.ui.view">
-        <field name="name">nr.sales.partner.search</field>
+    <record id="nr_sales_partner_standalone_search_view" model="ir.ui.view">
+        <field name="name">nr.sales.partner.standalone.search</field>
         <field name="model">res.partner</field>
         <field name="arch" type="xml">
             <search string="Registrations">
@@ -49,10 +49,10 @@
                 <separator/>
                 <filter name="filter_registered_this_month"
                     string="Registered This Month"
-                    domain="[('create_date', '&gt;=', datetime.date.today().strftime('%Y-%m-01'))]"/>
+                    domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-01'))]"/>
 
                 <!-- ── Group By ── -->
-                <group string="Group By" expand="0">
+                <group>
                     <filter name="group_by_nr_sales_state" string="Customer Status"
                         context="{'group_by': 'nr_sales_state'}"/>
                     <filter name="group_by_country" string="Country"
@@ -170,7 +170,7 @@
         <field name="view_mode">list,form</field>
         <field name="domain">[('nr_sales_customer', '=', True)]</field>
         <field name="context">{'default_nr_sales_customer': True}</field>
-        <field name="search_view_id" ref="nr_sales_partner_search_view"/>
+        <field name="search_view_id" ref="nr_sales_partner_standalone_search_view"/>
         <field name="view_ids" eval="[
             (5, 0, 0),
             (0, 0, {'view_mode': 'list', 'view_id': ref('nr_sales_partner_list_view')}),

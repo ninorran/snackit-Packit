@@ -319,16 +319,13 @@
                 <separator/>
                 <filter name="filter_today"
                     string="Created Today"
-                    domain="[('create_date', '&gt;=', datetime.datetime.now().strftime('%Y-%m-%d 00:00:00'))]"/>
-                <filter name="filter_this_week"
-                    string="Created This Week"
-                    domain="[('create_date', '&gt;=', (datetime.date.today() - datetime.timedelta(days=datetime.date.today().weekday())).strftime('%Y-%m-%d'))]"/>
+                    domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-%d 00:00:00'))]"/>
                 <filter name="filter_this_month"
                     string="Created This Month"
-                    domain="[('create_date', '&gt;=', datetime.date.today().strftime('%Y-%m-01'))]"/>
+                    domain="[('create_date', '&gt;=', context_today().strftime('%Y-%m-01'))]"/>
 
                 <!-- ── Group By ── -->
-                <group string="Group By" expand="0">
+                <group>
                     <filter name="group_by_state"
                         string="Status"
                         context="{'group_by': 'state'}"/>
@@ -340,8 +337,7 @@
                         context="{'group_by': 'payment_status'}"/>
                     <filter name="group_by_company"
                         string="Company"
-                        context="{'group_by': 'company_id'}"
-                        groups="base.group_multi_company"/>
+                        context="{'group_by': 'company_id'}"/>
                     <filter name="group_by_month"
                         string="Creation Month"
                         context="{'group_by': 'create_date:month'}"/>
