@@ -101,10 +101,15 @@ class NrDeliveryRequest(models.Model):
         for rec in self:
             rec.invoice_count = len(rec.invoice_ids)
 
-    @api.depends('invoice_ids', 'invoice_ids.payment_state', 'invoice_ids.state')
+    @api.depends('invoice_ids', 'invoice_ids.payment_state', 'invoice_ids.state',
+                 'invoice_ids.move_type', 'invoice_ids.nr_invoice_type')
     def _compute_payment_status(self):
         for rec in self:
-            invoices = rec.invoice_ids.filtered(lambda m: m.state == 'posted')
+            invoices = rec.invoice_ids.filtered(
+                lambda m: m.state == 'posted'
+                and m.move_type == 'out_invoice'
+                and m.nr_invoice_type == 'nr_sales_bill'
+            )
             if not invoices:
                 rec.payment_status = False
             elif all(m.payment_state in ('paid', 'in_payment', 'reversed') for m in invoices):

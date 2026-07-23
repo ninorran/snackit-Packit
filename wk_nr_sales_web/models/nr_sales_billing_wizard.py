@@ -70,10 +70,13 @@ class NrSalesBillingWizard(models.TransientModel):
                 'price_unit': line.total,
             }))
 
-        invoice = self.env['account.move'].create({
+        company = self.request_id.company_id
+        invoice = self.env['account.move'].with_company(company).create({
             'move_type': 'out_invoice',
-            'company_id': self.request_id.company_id.id,
+            'nr_invoice_type': 'nr_sales_bill',
+            'company_id': company.id,
             'partner_id': self.request_id.partner_id.id,
+            'invoice_date': fields.Date.today(),
             'invoice_origin': self.request_id.name,
             'invoice_line_ids': invoice_line_vals,
         })

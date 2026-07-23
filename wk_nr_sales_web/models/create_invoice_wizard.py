@@ -28,10 +28,13 @@ class NrCreateInvoiceWizard(models.TransientModel):
     def action_confirm(self):
         self.ensure_one()
         if self.invoice_type == 'other':
-            invoice = self.env['account.move'].create({
+            company = self.request_id.company_id
+            invoice = self.env['account.move'].with_company(company).create({
                 'move_type': 'out_invoice',
-                'company_id': self.request_id.company_id.id,
+                'nr_invoice_type': 'other',
+                'company_id': company.id,
                 'partner_id': self.request_id.partner_id.id,
+                'invoice_date': fields.Date.today(),
                 'invoice_origin': self.request_id.name,
                 'invoice_line_ids': [(0, 0, {
                     'name': self.other_description or self.request_id.name,

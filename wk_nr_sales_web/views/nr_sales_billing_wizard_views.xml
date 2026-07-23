@@ -20,7 +20,7 @@
                         <field name="product_description" string="Product Description"/>
                         <field name="quantity" string="Qty" readonly="1"/>
                         <field name="declared_value" string="D-Value" widget="monetary"/>
-                        <field name="weight" string="Weight" readonly="1"/>
+                        <field name="weight" string="Weight"/>
                         <field name="duty_charge" string="Duty" readonly="1" widget="monetary"/>
                         <field name="csc_charge" string="CSC" readonly="1" widget="monetary"/>
                         <field name="vat_charge" string="VAT" readonly="1" widget="monetary"/>

@@ -23,6 +23,11 @@ class NrSalesRegistration(http.Controller):
     @http.route('/nr-sales/register', type='http', auth='public', website=True, methods=['GET'])
     def registration_form(self, **kwargs):
         render_values = self._get_address_render_values()
+        partner = request.env.user.partner_id
+        if not request.env.user._is_public() and partner.nr_sales_customer:
+            render_values['already_registered'] = True
+            render_values['partner_name'] = partner.name
+            render_values['nr_sales_state'] = partner.nr_sales_state
         return request.render('wk_nr_sales_web.nr_sales_registration_form', render_values)
 
     @http.route('/nr-sales/register/states', type='jsonrpc', auth='public', website=True, methods=['POST'])
