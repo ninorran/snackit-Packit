@@ -4,6 +4,9 @@
 <!-- License URL : <https://store.webkul.com/license.html/> -->
 <odoo>
     <template id="pos_payment_in_multi_currency.report_invoice_document" inherit_id="account.report_invoice_document">
+        <xpath expr="//th[@name='th_description']/span" position="replace">
+            <span>Tracking #</span>
+        </xpath>
         <xpath expr="//t[@t-foreach='payments_vals']" position="replace">
             <t t-foreach="payments_vals" t-as="payment_vals">
                 <t t-if="payment_vals.get('is_multi_currency')">
