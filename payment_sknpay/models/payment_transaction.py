@@ -27,7 +27,15 @@ class PaymentTransaction(models.Model):
         if self.provider_code != 'sknpay':
             return super()._get_specific_rendering_values(processing_values)
 
-        base_url = self.provider_id.get_base_url().replace('http://', 'https://', 1)
+        # Use the publicly accessible base URL. get_base_url() may return a
+        # LAN address (e.g. 192.168.x.x) that the payment provider cannot
+        # reach. web.base.url holds the canonical public HTTPS URL instead.
+        base_url = (
+            self.env['ir.config_parameter'].sudo().get_param('web.base.url', '')
+            or self.provider_id.get_base_url()
+        ).rstrip('/')
+        if base_url.startswith('http://'):
+            base_url = 'https://' + base_url[7:]
         return_url = urls.urljoin(base_url, f'{SKNPayController._return_url}?ref={self.reference}')
         webhook_url = urls.urljoin(base_url, SKNPayController._webhook_url)
 

@@ -52,7 +52,7 @@ class NrSalesBillingWizard(models.TransientModel):
         for line in self.line_ids:
             parts = [line.item_name]
             for label, amount in [
-                ('Declared Value',   line.declared_value),
+                # ('Declared Value',   line.declared_value),
                 ('Duty Charge',      line.duty_charge),
                 ('CSC Charge',       line.csc_charge),
                 ('VAT Charge',       line.vat_charge),

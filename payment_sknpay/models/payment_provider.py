@@ -83,7 +83,10 @@ class PaymentProvider(models.Model):
     def _parse_response_error(self, response):
         if self.code != 'sknpay':
             return super()._parse_response_error(response)
-        return response.json().get('error', '')
+        error = response.json().get('error', '')
+        if isinstance(error, dict):
+            return error.get('message') or error.get('type') or str(error)
+        return error or response.text
 
     # === WEBHOOK SIGNATURE VERIFICATION === #
 
