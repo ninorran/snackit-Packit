@@ -144,6 +144,22 @@
                 </button>
             </t>
         </xpath>
+
+        <xpath expr="(//div[@t-foreach='props.non_cash_payment_methods'])[2]" position="replace">
+            <t t-if="pos.getCashier() and pos.getCashier()._role == 'manager'">
+                <div class="w-100 mb-3" t-foreach="props.non_cash_payment_methods" t-as="pm" t-key="pm.id">
+                    <t t-set="_showDiff" t-value="pm.type === 'bank' and pm.number !== 0" />
+                    <t t-if="_showDiff">
+                        <span><t t-esc="pm.name" /> Count</span>
+                        <div class="d-flex w-100 gap-2 mt-1">
+                            <Input tModel="[state.payments[pm.id], 'counted']"
+                                isValid.bind="env.utils.isValidFloat" class="'w-100'" />
+                            <button class="icon fa fa-clone btn btn-secondary" t-on-click="() => this.autoFillPMCount(pm.id)" />
+                        </div>
+                    </t>
+                </div>
+            </t>
+        </xpath>
         <!-- ****************************************ENDS HERE**************************************************** -->
     </t>
     <t t-name="PaymentScreenPaymentLines" t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension" >
