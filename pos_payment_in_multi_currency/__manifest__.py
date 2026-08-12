@@ -28,7 +28,7 @@
     Payment Multi-Currency
     """,
     "live_test_url"     :  "http://odoodemo.webkul.com/?module=pos_payment_in_multi_currency&custom_url=/pos/auto",
-    "depends"           :  ['point_of_sale'],
+    "depends"           :  ['point_of_sale', 'pos_hr'],
     "data"              :  ['views/pos_config.xml',
                             'views/report_session.xml',
                             'views/report_invoice.xml'

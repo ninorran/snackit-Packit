@@ -1,3 +1,4 @@
+/** @odoo-module **/
 /* Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) */
 /* See LICENSE file for full copyright and licensing details. */
 /* License URL : <https://store.webkul.com/license.html/> */
@@ -8,7 +9,25 @@ import { patch } from "@web/core/utils/patch";
 import { PosPayment } from "@point_of_sale/app/models/pos_payment";
 import { formatFloat, roundDecimals as round_di } from "@web/core/utils/numbers";
 import { ClosePosPopup } from "@point_of_sale/app/components/popups/closing_popup/closing_popup";
+import { Navbar } from "@point_of_sale/app/components/navbar/navbar";
 ClosePosPopup.props.push("currency_amount?")
+
+patch(ClosePosPopup.prototype, {
+    hasUserAuthority() {
+        // Allow any cashier, not just managers, to close the register even
+        // when the counted cash differs from the expected amount.
+        return true;
+    },
+});
+
+patch(Navbar.prototype, {
+    get showBackend() {
+        // pos_hr only shows "Backend" when the badge-switched cashier's linked
+        // user matches the user actually logged into the browser session.
+        // Show it to every cashier instead.
+        return true;
+    },
+});
 
 patch(PosStore.prototype, {
     async processServerData() {
