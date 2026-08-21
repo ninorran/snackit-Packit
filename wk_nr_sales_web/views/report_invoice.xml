@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) -->
+<!-- See LICENSE file for full copyright and licensing details. -->
+<!-- License URL : <https://store.webkul.com/license.html/> -->
+<odoo>
+    <template id="report_invoice_document" inherit_id="account.report_invoice_document">
+        <xpath expr="//th[@name='th_description']/span" position="replace">
+            <span>Tracking #</span>
+        </xpath>
+        <xpath expr="//th[@name='th_description']" position="after">
+            <th name="th_product_description" class="text-start">
+                <span>Product Description</span>
+            </th>
+        </xpath>
+        <xpath expr="//td[@name='account_invoice_line_name']" position="after">
+            <td name="td_product_description">
+                <span t-field="line.product_description"/>
+            </td>
+        </xpath>
+    </template>
+</odoo>

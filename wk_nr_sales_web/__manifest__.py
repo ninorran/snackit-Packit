@@ -31,6 +31,7 @@
                         "data/delivery_request_data.xml",
                         "data/nr_whatsapp_templates.xml",
                         "views/delivery_request_views.xml",
+                        "views/report_invoice.xml",
                         "views/res_partner_views.xml",
                         "views/nr_tariff_config_views.xml",
                         "views/nr_sales_config_views.xml",
