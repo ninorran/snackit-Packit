@@ -1,3 +1,4 @@
+/** @odoo-module **/
 /* Copyright (c) 2016-Present Webkul Software Pvt. Ltd. (<https://webkul.com/>) */
 /* See LICENSE file for full copyright and licensing details. */
 /* License URL : <https://store.webkul.com/license.html/> */
@@ -17,47 +18,10 @@ patch(PaymentScreenStatus.prototype, {
             const paymentline = this.props.order.getSelectedPaymentline();
             const currency_id = paymentline.other_currency_id;
             const change_mc = this.pos.get_change_mc(this.props.order.change, paymentline);
-
-            if (currency_id.name === 'USD' && Math.abs(change_mc) < 1) {
-                return this.env.utils.formatCurrency(this.props.order.change);
-            } else {
-                const amt = this.pos.format_currency_n_symbol(change_mc, 0.0001);
-                return this.pos.formating(amt, currency_id);
-            }
+            const amt = this.pos.format_currency_n_symbol(change_mc, 0.0001);
+            return this.pos.formating(amt, currency_id);
         } else {
             return this.env.utils.formatCurrency(this.props.order.change);
         }
     },
-
-    get totalDueTextmc() {
-        if (this.pos.config.enable_multi_currency && this.props.order.use_multi_currency) {
-            var currency_id = this.props.order.getSelectedPaymentline().other_currency_id;
-            var due = this.pos.get_change_mc(this.props.order.priceIncl + this.props.order.appliedRounding, this.props.order.getSelectedPaymentline())
-            var amt = this.pos.format_currency_n_symbol(
-                due > 0 ? due : 0, 0.0001);
-            return this.pos.formating(amt, currency_id)
-        }
-        else {
-            return this.env.utils.formatCurrency(
-                this.props.order.priceIncl + this.props.order.appliedRounding
-            );
-        }
-    },
-    get remainingTextmc() {
-        if (this.pos.config.enable_multi_currency && this.props.order.use_multi_currency) {
-            var currency_id = this.props.order.getSelectedPaymentline().other_currency_id;
-            var rem = this.pos.get_change_mc(this.props.order.remainingDue, this.props.order.getSelectedPaymentline())
-            var amt = this.pos.format_currency_n_symbol(
-                rem > 0 ? rem : 0, 0.0001)
-            return this.pos.formating(amt, currency_id)
-        }
-        else {
-            return this.env.utils.formatCurrency(
-                this.props.order.remainingDue > 0 ? this.props.order.remainingDue : 0
-            );
-        }
-    },
-    get convamount() {
-        return this.env.utils.formatCurrency(this.props.order.getSelectedPaymentline().getAmount());
-    }
 });
