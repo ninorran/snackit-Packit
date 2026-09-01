@@ -161,8 +161,8 @@ class AccountMove(models.Model):
 
                 for reconciled_partial in reconciled_partials:
                     counterpart_line = reconciled_partial['aml']
-                    pos_payment = counterpart_line.move_id.sudo().pos_payment_ids
-                    
+                    pos_payment = counterpart_line.move_id.sudo().pos_payment_ids[:1]
+
                     if pos_payment and pos_payment.is_multi_currency_payment:
                         is_multi_currency = True
 

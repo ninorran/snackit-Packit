@@ -90,6 +90,11 @@
         <xpath expr="//DropdownItem[contains(text(), 'Close Register')]" position="attributes">
             <attribute name="t-if">true</attribute>
         </xpath>
+        <!-- Hide the "Orders" (Ticket Screen) button for cashiers with Basic or Minimal
+             rights; only managers get access to it. -->
+        <xpath expr="//button[hasclass('orders-button')]" position="attributes">
+            <attribute name="t-if">pos.cashier and pos.cashier._role == 'manager'</attribute>
+        </xpath>
     </t>
     <t t-name="PaymentScreenPaymentLines" t-inherit="point_of_sale.PaymentScreenPaymentLines" t-inherit-mode="extension" >
         <xpath expr="//span[hasclass('payment-name')]" position="replace">
