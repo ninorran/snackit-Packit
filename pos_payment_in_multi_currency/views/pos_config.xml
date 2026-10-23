@@ -55,4 +55,17 @@
             </xpath>
         </field>
     </record>
+    <!-- Hide sold amount and total paid orders from the POS configuration kanban view -->
+    <record id="view_pos_config_kanban_hide_sold"
+            model="ir.ui.view">
+        <field name="name">pos.config.kanban.hide.sold</field>
+        <field name="model">pos.config</field>
+        <field name="inherit_id"
+               ref="point_of_sale.view_pos_config_kanban"/>
+        <field name="arch" type="xml">
+            <xpath expr="//span[@name='paid_orders']/.."
+                   position="replace"/>
+        </field>
+    </record>
+    
 </odoo>
